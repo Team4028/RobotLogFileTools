@@ -1,0 +1,11 @@
+﻿Complete
+- add auto build versioning (Automatic versions)
+- add support for json config file (json.net)
+- add command line options support (commandlineparser)
+
+WIP
+- implement -p option to pull latest file from RoboRio (ssh.net)
+
+
+Backlog
+- implement basic import and graph

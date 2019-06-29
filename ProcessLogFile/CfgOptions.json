@@ -1,0 +1,88 @@
+{
+  "roboRio": {
+    "ipv4Address": "10.40.28.2",
+    "username": "admin",
+    "password": "",
+    "logFileFolder": ""
+  },
+  "localWorkingFolder": "C:\\Temp\\testrobot",
+  "logFileExtension": ".tsv",
+  "graphs": [
+    {
+      "name": "Left Axis Velocity",
+      "xAxis": {
+        "axisTitle": "Elapsed Time (mSec)",
+        "fromColumnName": "StartDeltaMS"
+      },
+      "yAxis": {
+        "axisTitle": "Velocity (IPS)",
+        "fromColumnNames": [
+          "LeftFollower:SegmentVel",
+          "Chassis:LeftActVelInIPS"
+        ]
+      },
+      "gains": {
+        "pidGains": "Chassis:LeftPIDGains",
+        "followerGains": "LeftFollower:Gains"
+      },
+      "chartType": "line"
+    },
+    {
+      "name": "Right Axis Velocity",
+      "xAxis": {
+        "axisTitle": "Elapsed Time (mSec)",
+        "fromColumnName": "StartDeltaMS"
+      },
+      "yAxis": {
+        "axisTitle": "Velocity (IPS)",
+        "fromColumnNames": [
+          "RgtFollower:SegmentVel",
+          "Chassis:RgtActVelInIPS"
+        ]
+      },
+      "gains": {
+        "pidGains": "Chassis:RgtPIDGains",
+        "followerGains": "RgtFollower:Gains"
+      },
+      "chartType": "line"
+    },
+    {
+      "name": "Left Axis Position",
+      "xAxis": {
+        "axisTitle": "Elapsed Time (mSec)",
+        "fromColumnName": "StartDeltaMS"
+      },
+      "yAxis": {
+        "axisTitle": "Position (Inches)",
+        "fromColumnNames": [
+          "LeftFollower:SegmentPos",
+          "Chassis:LeftActPosInInches"
+        ]
+      },
+      "gains": {
+        "pidGains": "Chassis:RgtPIDGains",
+        "followerGains": "RgtFollower:Gains"
+      },
+      "chartType": "line"
+    },
+    {
+      "name": "Right Axis Position",
+      "xAxis": {
+        "axisTitle": "Elapsed Time (mSec)",
+        "fromColumnName": "StartDeltaMS"
+      },
+      "yAxis": {
+        "axisTitle": "Position (Inches)",
+        "fromColumnNames": [
+          "RgtFollower:SegmentPos",
+          "Chassis:RgtActPosInInches"
+        ]
+      },
+      "gains": {
+        "pidGains": "Chassis:RgtPIDGains",
+        "followerGains": "RgtFollower:Gains"
+      },
+      "chartType": "line"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ProcessLogFile": {
+      "commandName": "Project",
+      "commandLineArgs": "-f \"C:\\Temp\\testrobot\\20190624_191914_049_Auton.tsv\""
+    }
+  }
+}
