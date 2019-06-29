@@ -9,6 +9,9 @@ using SpreadsheetGear.Charts;
 
 namespace ProcessLogFile
 {
+    /// <summary>
+    /// This class used excel to build one or more graphs
+    /// </summary>
     static class GraphBuilder
     {
         const string A1_REF = @"ABCDEFGHIJKLMNOPQRSTUVWXYZ";

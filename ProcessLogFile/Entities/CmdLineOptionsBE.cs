@@ -7,8 +7,9 @@ using CommandLine;
 namespace ProcessLogFile.Entities
 {
     /// <summary>
-    /// https://github.com/commandlineparser/commandline
+    /// This class represents command line options
     /// </summary>
+    /// <see cref="https://github.com/commandlineparser/commandline"/>
     class CmdLineOptionsBE
     {
         [Option('d', "download", Required = false, HelpText = "Grab latest file from RoboRio.")]

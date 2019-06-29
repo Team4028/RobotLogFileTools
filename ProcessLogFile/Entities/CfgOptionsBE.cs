@@ -6,6 +6,9 @@ using Newtonsoft.Json;
 
 namespace ProcessLogFile.Entities
 {
+    /// <summary>
+    /// These classes represent the Config of the Graphs to generate stored in a JSON file
+    /// </summary>
     class CfgOptionsBE
     {
         [JsonProperty(PropertyName = "roboRio")]
