@@ -106,8 +106,12 @@ namespace ProcessLogFile
             return config;
         }
 
-        // this method retrieves the latest log file from the RoboRio
-        // https://github.com/sshnet/SSH.NET/
+        /// <summary>
+        /// this method retrieves the latest log file from the RoboRio (using SFTP)
+        /// </summary>
+        /// <param name="config">The configuration.</param>
+        /// <returns>System.String.</returns>
+        /// <see cref="https://github.com/sshnet/SSH.NET/"/>
         private static string CopyLatestFileFromRoboRio(CfgOptionsBE config)
         {
             string lastestLogFilePathName = string.Empty;

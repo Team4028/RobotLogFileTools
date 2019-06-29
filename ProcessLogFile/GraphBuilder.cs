@@ -3,22 +3,20 @@ using System.Collections.Generic;
 using System.Text;
 
 using SpreadsheetGear;
+using SpreadsheetGear.Charts;
 
 using ProcessLogFile.Entities;
-using SpreadsheetGear.Charts;
 
 namespace ProcessLogFile
 {
     /// <summary>
-    /// This class used excel to build one or more graphs
+    /// This class used a rd party library to build one or more excel graphs
     /// </summary>
     static class GraphBuilder
     {
-        const string A1_REF = @"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
         public static void ProcessLogFile(string logFilePathName, CfgOptionsBE config)
         {
-            // Activate SpreadsheetGear.
+            // Activate SpreadsheetGear
             SpreadsheetGear.Factory.SetSignedLicense("SpreadsheetGear.License, Type=Trial, Product=BND, Expires=2019-07-27, Company=Tom Bruns, Email=xtobr39@hotmail.com, Signature=orH+RFO9hRUB8SJXBSWQZJuXP9OfSkV9fLcU9suehfgA#dgunwBK9VssTgnfowKGWaqMNfVgwVetxEWbayzGM1uIA#K");
 
             // Create a new empty workbook in a new workbook set.
@@ -26,8 +24,10 @@ namespace ProcessLogFile
 
             // import the csv file
             SpreadsheetGear.IWorkbook workbook = workbookSet.Workbooks.Open(logFilePathName);
-
+            
+            // get a reference to the active (only) worksheet
             SpreadsheetGear.IWorksheet dataWorksheet = workbook.ActiveWorksheet;
+            dataWorksheet.Name = System.IO.Path.GetFileNameWithoutExtension(logFilePathName);
 
             // resize column widths to fit header text
             dataWorksheet.UsedRange.Columns.AutoFit();
@@ -39,9 +39,10 @@ namespace ProcessLogFile
             dataWorksheet.WindowInfo.SplitRows = 1;
             dataWorksheet.WindowInfo.FreezePanes = true;
 
-            // get index of column names
+            // build index of column names
             var columnNameIndex = BuildColumnNameXref(dataWorksheet);
 
+            // build a new graph for each one that was configured
             foreach(GraphBE graph in config.Graphs)
             {
                 BuildGraph(dataWorksheet, graph, columnNameIndex);
@@ -53,7 +54,11 @@ namespace ProcessLogFile
             workbook.SaveAs(xlsFileName, FileFormat.OpenXMLWorkbook);
         }
 
-        // build a xref of the columns in the log file
+        /// <summary>
+        /// build a xref of the columns in the log file
+        /// </summary>
+        /// <param name="dataWorksheet">The data worksheet.</param>
+        /// <returns>Dictionary&lt;System.String, System.Int32&gt;.</returns>
         private static Dictionary<string, int> BuildColumnNameXref(SpreadsheetGear.IWorksheet dataWorksheet)
         {
             Dictionary<string, int> colNameXref = new Dictionary<string, int>();
@@ -72,6 +77,13 @@ namespace ProcessLogFile
             return colNameXref;
         }
 
+        /// <summary>
+        /// Builds the graph.
+        /// </summary>
+        /// <param name="dataWorksheet">The data worksheet.</param>
+        /// <param name="graphConfig">The graph configuration.</param>
+        /// <param name="columnNameIndex">Index of the column name.</param>
+        /// <exception cref="ApplicationException">... Error building graph: [{graphConfig.Name}], Expected cols: [{errList}</exception>
         private static void BuildGraph(SpreadsheetGear.IWorksheet dataWorksheet, GraphBE graphConfig, Dictionary<string, int> columnNameIndex)
         {
             SpreadsheetGear.IWorkbook workbook = dataWorksheet.Workbook;
@@ -138,7 +150,7 @@ namespace ProcessLogFile
             SpreadsheetGear.Shapes.IShape chartShape = chartSheet.Shapes.AddChart(1, 1, 500, 500);
             SpreadsheetGear.Charts.IChart chart = chartShape.Chart;
 
-            // working values
+            // working variables
             int lastRowIdx = dataWorksheet.UsedRange.RowCount;
             IRange xAxisColumn = dataWorksheet.Cells[1, 0, lastRowIdx-1, 0];
             IRange yAxisColumn = null;
@@ -172,7 +184,7 @@ namespace ProcessLogFile
             chart.Legend.Position = SpreadsheetGear.Charts.LegendPosition.Bottom;
             chart.Legend.Font.Bold = true;
 
-            // Step 5.5: format X & Y Axis
+            // Step 5.5: format X & Y Axes
             IAxis xAxis = chart.Axes[AxisType.Category];
             xAxis.HasMinorGridlines = true;
             xAxis.HasTitle = true;
