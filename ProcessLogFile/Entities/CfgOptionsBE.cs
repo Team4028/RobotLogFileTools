@@ -65,6 +65,9 @@ public class GraphBE
 
     [JsonProperty(PropertyName = "chartType")]
     public string ChartType { get; set; }
+
+    [JsonProperty(PropertyName = "calcAreaDelta")]
+    public CalcAreaDeltaBE CalcAreaDelta { get; set; }
 }
 
 public class XAxisBE
@@ -92,4 +95,19 @@ public class GainsBE
 
     [JsonProperty(PropertyName = "followerGains")]
     public string FollowerGains { get; set; }
+
+    [JsonProperty(PropertyName = "controlMode")]
+    public string ControlMode { get; set; }
+}
+
+public class CalcAreaDeltaBE
+{
+    [JsonProperty(PropertyName = "elaspedTime")]
+    public string ElapsedTimeInMS { get; set; }
+
+    [JsonProperty(PropertyName = "target")]
+    public string TargetColumnName { get; set; }
+
+    [JsonProperty(PropertyName = "actual")]
+    public string ActualColumnName { get; set; }
 }

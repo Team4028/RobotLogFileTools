@@ -26,6 +26,7 @@
           },
           "gains": {
             "pidGains": "Chassis:LeftPIDGains",
+            "controlMode": "Chassis:LeftControlMode",
             "followerGains": "LeftFollower:Gains"
           },
           "chartType": "line"
@@ -45,6 +46,7 @@
           },
           "gains": {
             "pidGains": "Chassis:RgtPIDGains",
+            "controlMode": "Chassis:RgtControlMode",
             "followerGains": "RgtFollower:Gains"
           },
           "chartType": "line"
@@ -63,8 +65,9 @@
             ]
           },
           "gains": {
-            "pidGains": "Chassis:RgtPIDGains",
-            "followerGains": "RgtFollower:Gains"
+            "pidGains": "Chassis:LeftPIDGains",
+            "controlMode": "Chassis:LeftControlMode",
+            "followerGains": "LeftFollower:Gains"
           },
           "chartType": "line"
         },
@@ -83,6 +86,7 @@
           },
           "gains": {
             "pidGains": "Chassis:RgtPIDGains",
+            "controlMode": "Chassis:RgtControlMode",
             "followerGains": "RgtFollower:Gains"
           },
           "chartType": "line"
@@ -107,9 +111,15 @@
           },
           "gains": {
             "pidGains": "Chassis:LeftPIDGains",
+            "controlMode": "Chassis:LeftControlMode",
             "followerGains": null
           },
-          "chartType": "line"
+          "chartType": "line",
+          "calcAreaDelta": {
+            "elaspedTime": "StartDeltaMS",
+            "target": "Chassis:LeftTrgtCmdVelInIPS",
+            "actual": "Chassis:LeftActVelInIPS"
+          }
         },
         {
           "name": "Right Axis Velocity",
@@ -126,9 +136,31 @@
           },
           "gains": {
             "pidGains": "Chassis:RgtPIDGains",
+            "controlMode": "Chassis:RgtControlMode",
             "followerGains": null
           },
-          "chartType": "line"
+          "chartType": "line",
+          "calcAreaDelta": {
+            "elaspedTime": "StartDeltaMS",
+            "target": "Chassis:RgtTrgtCmdVelInIPS",
+            "actual": "Chassis:RgtActVelInIPS"
+          }
+        },
+        {
+          "name": "Heading",
+          "xAxis": {
+            "axisTitle": "Elapsed Time (mSec)",
+            "fromColumnName": "StartDeltaMS"
+          },
+          "yAxis": {
+            "axisTitle": "Heading (Degrees)",
+            "fromColumnNames": [
+              "GyroNavX:RawYaw"
+            ]
+          },
+          "gains": null,
+          "chartType": "line",
+          "calcAreaDelta": null
         }
       ]
     }

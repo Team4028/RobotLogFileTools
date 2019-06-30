@@ -15,7 +15,7 @@ namespace ProcessLogFile
     /// </summary>
     static class GraphBuilder
     {
-        public static void ProcessLogFile(string logFilePathName, string graphSetName, CfgOptionsBE config)
+        public static string ProcessLogFile(string logFilePathName, string graphSetName, CfgOptionsBE config)
         {
             // Activate SpreadsheetGear
             SpreadsheetGear.Factory.SetSignedLicense("SpreadsheetGear.License, Type=Trial, Product=BND, Expires=2019-07-27, Company=Tom Bruns, Email=xtobr39@hotmail.com, Signature=orH+RFO9hRUB8SJXBSWQZJuXP9OfSkV9fLcU9suehfgA#dgunwBK9VssTgnfowKGWaqMNfVgwVetxEWbayzGM1uIA#K");
@@ -61,6 +61,8 @@ namespace ProcessLogFile
             string xlsFileName = System.IO.Path.ChangeExtension(logFilePathName, @".xlsx");
 
             workbook.SaveAs(xlsFileName, FileFormat.OpenXMLWorkbook);
+
+            return xlsFileName;
         }
 
         /// <summary>
@@ -80,7 +82,14 @@ namespace ProcessLogFile
 
             for(int colIndex = 0; colIndex <= columnCount-1; colIndex++)
             {
-                colNameXref.Add(dataWorksheet.Cells[0, colIndex].Text, colIndex);
+                try
+                {
+                    colNameXref.Add(dataWorksheet.Cells[0, colIndex].Text, colIndex);
+                }
+                catch (Exception ex)
+                {
+
+                }
             }
 
             return colNameXref;
@@ -122,11 +131,16 @@ namespace ProcessLogFile
             }
 
             // step 3: find the columns we want to reference for the Gains
-            string pidGainsColumnName = graphConfig.Gains.PIDGains;
-            string followerGainsColumnName = graphConfig.Gains.FollowerGains;
+            string pidGainsColumnName = graphConfig.Gains?.PIDGains;
+            string followerGainsColumnName = graphConfig.Gains?.FollowerGains;
+            string controlModeColumnName = graphConfig.Gains?.ControlMode;
 
             int pidGainsColumnIdx = -1;
             int followerGainsColumnIdx = -1;
+            int controlModeColumnIdx = -1;
+            int elapsedDeltaColumnIdx = -1;
+            int targetColumnIdx = -1;
+            int actualColumnIdx = -1;
 
             if (!string.IsNullOrEmpty(pidGainsColumnName))
             {
@@ -144,6 +158,38 @@ namespace ProcessLogFile
                 }
             }
 
+            if (!string.IsNullOrEmpty(controlModeColumnName))
+            {
+                if (!columnNameIndex.TryGetValue(controlModeColumnName, out controlModeColumnIdx))
+                {
+                    missingColumnNames.Add(controlModeColumnName);
+                }
+            }
+            //
+            if (!string.IsNullOrEmpty(graphConfig.XAxis.FromColumnName))
+            {
+                if (!columnNameIndex.TryGetValue(graphConfig.XAxis.FromColumnName, out elapsedDeltaColumnIdx))
+                {
+                    missingColumnNames.Add(graphConfig.XAxis.FromColumnName);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(graphConfig.CalcAreaDelta?.TargetColumnName))
+            {
+                if (!columnNameIndex.TryGetValue(graphConfig.CalcAreaDelta.TargetColumnName, out targetColumnIdx))
+                {
+                    missingColumnNames.Add(graphConfig.CalcAreaDelta.TargetColumnName);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(graphConfig.CalcAreaDelta?.ActualColumnName))
+            {
+                if (!columnNameIndex.TryGetValue(graphConfig.CalcAreaDelta.ActualColumnName, out actualColumnIdx))
+                {
+                    missingColumnNames.Add(graphConfig.CalcAreaDelta.ActualColumnName);
+                }
+            }
+            //
             // stop if any were missing
             if (missingColumnNames.Count > 0)
             {
@@ -183,11 +229,20 @@ namespace ProcessLogFile
             chart.HasTitle = true;
             StringBuilder chartTitle = new StringBuilder();
             chartTitle.AppendLine($"{graphConfig.Name}");
-            chartTitle.AppendLine($"PID Gains: {dataWorksheet.Cells[1, pidGainsColumnIdx].Text}");
+            // optional add follower gains only if avaialable
+            if (pidGainsColumnIdx >= 0)
+            {
+                chartTitle.AppendLine($"PID Gains: {GetPIDGains(dataWorksheet, pidGainsColumnIdx, controlModeColumnIdx)}");
+            }
             // optional add follower gains only if avaialable
             if (followerGainsColumnIdx >= 0)
             {
                 chartTitle.AppendLine($"Follower Gains: {dataWorksheet.Cells[1, followerGainsColumnIdx].Text}");
+            }
+            if (graphConfig.CalcAreaDelta != null)
+            {
+                (decimal posErr, decimal negErr) = CalcAreaDelta(dataWorksheet, elapsedDeltaColumnIdx, targetColumnIdx, actualColumnIdx, graphConfig.Name);
+                chartTitle.AppendLine($"Error Area (tot): {posErr} | {negErr}");
             }
 
             chart.ChartTitle.Text = chartTitle.ToString();
@@ -210,6 +265,73 @@ namespace ProcessLogFile
             yAxis.TickLabels.NumberFormat = "General";
             IAxisTitle yAxisTitle = yAxis.AxisTitle;
             yAxisTitle.Text = graphConfig.YAxis.AxisTitle;
+        }
+
+        private static string GetPIDGains(SpreadsheetGear.IWorksheet dataWorksheet, int pidGainsColumnIdx, int controlModeColumnIdx)
+        {
+            int maxRows = dataWorksheet.UsedRange.RowCount;
+            string controlMode = string.Empty;
+
+            // scan down the control mode column looking for the 1st row that is "Velocity", grab the PID gains value from that row
+            for (int rowIndex = 1; rowIndex < maxRows; rowIndex++)
+            {
+                controlMode = dataWorksheet.Cells[rowIndex, controlModeColumnIdx].Text;
+
+                switch(controlMode.ToLower())
+                {
+                    case "velocity":
+                        return dataWorksheet.Cells[rowIndex, pidGainsColumnIdx].Text;
+                }
+            }
+          
+            return string.Empty; ;
+        }
+
+        private static (decimal posErr, decimal negErr) CalcAreaDelta(SpreadsheetGear.IWorksheet dataWorksheet, int elapsedDeltaColumnIdx, int targetColumnIdx, int actualColumnIdx, string graphName)
+        {
+            decimal totalPositiveAreaDelta = 0;
+            decimal totalNegativeAreaDelta = 0;
+            decimal thisLoopAreaDelta = -0;
+
+            int maxRows = dataWorksheet.UsedRange.RowCount;
+            int lastLoopElapsedTimeInMS = 0;
+            int thisLoopElapsedTimeInMS = 0;
+            decimal targetValue = 0;
+            decimal actualValue = 0;
+
+            int newColumnIdx = dataWorksheet.UsedRange.ColumnCount;
+            dataWorksheet.Cells[0, newColumnIdx].Value = $"{graphName} Error Area";
+
+            for (int rowIndex = 1; rowIndex < maxRows; rowIndex++)
+            {
+                thisLoopElapsedTimeInMS = Int32.Parse(dataWorksheet.Cells[rowIndex, elapsedDeltaColumnIdx].Text);
+                targetValue = decimal.Parse(dataWorksheet.Cells[rowIndex, targetColumnIdx].Text);
+                actualValue = decimal.Parse(dataWorksheet.Cells[rowIndex, actualColumnIdx].Text);
+
+                if (targetValue == 0)
+                {
+                    continue;
+                }
+
+                thisLoopAreaDelta = Math.Round(((targetValue - actualValue) * thisLoopElapsedTimeInMS), 2);
+
+                if (targetValue > actualValue)
+                {
+                    totalPositiveAreaDelta += thisLoopAreaDelta;
+                }
+                else
+                {
+                    totalNegativeAreaDelta += thisLoopAreaDelta;
+                }
+
+                dataWorksheet.Cells[rowIndex, newColumnIdx].Value = $"{totalPositiveAreaDelta} | {totalNegativeAreaDelta}";
+
+                // snapshot for next loop
+                lastLoopElapsedTimeInMS = thisLoopElapsedTimeInMS;
+            }
+
+            // round result
+            return (totalPositiveAreaDelta, totalNegativeAreaDelta);
         }
     }
 }

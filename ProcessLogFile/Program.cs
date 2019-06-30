@@ -79,7 +79,12 @@ namespace ProcessLogFile
                             }
 
                             // process file
-                            GraphBuilder.ProcessLogFile(logFilePathName, o.GraphSetName, config);
+                            string xlsFilePathName = GraphBuilder.ProcessLogFile(logFilePathName, o.GraphSetName, config);
+
+                            System.Console.ForegroundColor = ConsoleColor.Green;
+                            Console.WriteLine();
+                            Console.WriteLine($"Log Data + Graphs in: [{xlsFilePathName}]");
+                            System.Console.ResetColor();
                         });
 
                 return 0;
