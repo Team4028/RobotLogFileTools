@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.2</TargetFramework>
-    <FileVersion>1.19.0629.2</FileVersion>
+    <FileVersion>1.19.0630.10</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>

@@ -20,8 +20,8 @@ namespace ProcessLogFile.Entities
         [JsonProperty(PropertyName = "logFileExtension")]
         public string LogFileExtension { get; set; }
 
-        [JsonProperty(PropertyName = "graphs")]
-        public List<GraphBE> Graphs { get; set; }
+        [JsonProperty(PropertyName = "graphSets")]
+        public List<GraphSetBE> GraphSets { get; set; }
     }
 }
 
@@ -38,6 +38,15 @@ public class RoboRioBE
 
     [JsonProperty(PropertyName = "logFileFolder")]
     public string LogFileFolder { get; set; }
+}
+
+public class GraphSetBE
+{
+    [JsonProperty(PropertyName = "setName")]
+    public string SetName { get; set; }
+
+    [JsonProperty(PropertyName = "graphs")]
+    public List<GraphBE> Graphs { get; set; }
 }
 
 public class GraphBE

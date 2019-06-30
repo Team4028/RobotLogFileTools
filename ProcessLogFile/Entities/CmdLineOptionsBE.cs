@@ -17,5 +17,8 @@ namespace ProcessLogFile.Entities
 
         [Option('f', "file", Required = false, HelpText = "CSV Filename to process.")]
         public string CSVFileName { get; set; }
+
+        [Option('g', "gsm", Required = false, HelpText = "Graph Set Name.")]
+        public string GraphSetName { get; set; }
     }
 }

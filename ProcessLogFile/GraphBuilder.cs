@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 using SpreadsheetGear;
@@ -14,7 +15,7 @@ namespace ProcessLogFile
     /// </summary>
     static class GraphBuilder
     {
-        public static void ProcessLogFile(string logFilePathName, CfgOptionsBE config)
+        public static void ProcessLogFile(string logFilePathName, string graphSetName, CfgOptionsBE config)
         {
             // Activate SpreadsheetGear
             SpreadsheetGear.Factory.SetSignedLicense("SpreadsheetGear.License, Type=Trial, Product=BND, Expires=2019-07-27, Company=Tom Bruns, Email=xtobr39@hotmail.com, Signature=orH+RFO9hRUB8SJXBSWQZJuXP9OfSkV9fLcU9suehfgA#dgunwBK9VssTgnfowKGWaqMNfVgwVetxEWbayzGM1uIA#K");
@@ -42,8 +43,16 @@ namespace ProcessLogFile
             // build index of column names
             var columnNameIndex = BuildColumnNameXref(dataWorksheet);
 
+            GraphSetBE graphSet = config.GraphSets.Where(gs => gs.SetName.ToLower() == graphSetName.ToLower()).FirstOrDefault();
+            if(graphSet == null)
+            {
+                List<string> availableGraphSetNames = config.GraphSets.Select(gs => gs.SetName).ToList();
+
+                throw new ApplicationException($"Requested GraphSet: [{graphSetName}], Options: [{String.Join(",", availableGraphSetNames)}]");
+            }
+
             // build a new graph for each one that was configured
-            foreach(GraphBE graph in config.Graphs)
+            foreach(GraphBE graph in graphSet.Graphs)
             {
                 BuildGraph(dataWorksheet, graph, columnNameIndex);
             }
@@ -100,9 +109,9 @@ namespace ProcessLogFile
 
             // step 2: find the columns we want to target for the YAxis
             Dictionary<int, string> yAxisTargetColIdxs = new Dictionary<int, string>();
-            foreach(string yAxisColumnName in graphConfig.YAxis.FromColumnNames)
+            foreach (string yAxisColumnName in graphConfig.YAxis.FromColumnNames)
             {
-                if(columnNameIndex.TryGetValue(yAxisColumnName, out columnIdx))
+                if (columnNameIndex.TryGetValue(yAxisColumnName, out columnIdx))
                 {
                     yAxisTargetColIdxs.Add(columnIdx, yAxisColumnName);
                 }
@@ -152,7 +161,7 @@ namespace ProcessLogFile
 
             // working variables
             int lastRowIdx = dataWorksheet.UsedRange.RowCount;
-            IRange xAxisColumn = dataWorksheet.Cells[1, 0, lastRowIdx-1, 0];
+            IRange xAxisColumn = dataWorksheet.Cells[1, 0, lastRowIdx - 1, 0];
             IRange yAxisColumn = null;
             ISeries chartSeries = null;
             string seriesName = string.Empty;
@@ -161,7 +170,7 @@ namespace ProcessLogFile
             foreach (var kvp in yAxisTargetColIdxs)
             {
                 seriesName = dataWorksheet.Cells[0, kvp.Key].Text;
-                yAxisColumn = dataWorksheet.Cells[1, kvp.Key, lastRowIdx-1, kvp.Key];
+                yAxisColumn = dataWorksheet.Cells[1, kvp.Key, lastRowIdx - 1, kvp.Key];
 
                 chartSeries = chart.SeriesCollection.Add();
                 chartSeries.XValues = $"={xAxisColumn.ToString()}"; // "Sheet1!$A2:$A200";
@@ -175,7 +184,11 @@ namespace ProcessLogFile
             StringBuilder chartTitle = new StringBuilder();
             chartTitle.AppendLine($"{graphConfig.Name}");
             chartTitle.AppendLine($"PID Gains: {dataWorksheet.Cells[1, pidGainsColumnIdx].Text}");
-            chartTitle.AppendLine($"Follower Gains: {dataWorksheet.Cells[1, followerGainsColumnIdx].Text}");
+            // optional add follower gains only if avaialable
+            if (followerGainsColumnIdx >= 0)
+            {
+                chartTitle.AppendLine($"Follower Gains: {dataWorksheet.Cells[1, followerGainsColumnIdx].Text}");
+            }
 
             chart.ChartTitle.Text = chartTitle.ToString();
             chart.ChartTitle.Font.Size = 12;
@@ -194,6 +207,7 @@ namespace ProcessLogFile
 
             IAxis yAxis = chart.Axes[AxisType.Value, AxisGroup.Primary];
             yAxis.HasTitle = true;
+            yAxis.TickLabels.NumberFormat = "General";
             IAxisTitle yAxisTitle = yAxis.AxisTitle;
             yAxisTitle.Text = graphConfig.YAxis.AxisTitle;
         }
