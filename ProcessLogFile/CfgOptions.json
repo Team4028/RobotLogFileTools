@@ -90,6 +90,24 @@
             "followerGains": "RgtFollower:Gains"
           },
           "chartType": "line"
+        },
+        {
+          "name": "Heading",
+          "xAxis": {
+            "axisTitle": "Elapsed Time (mSec)",
+            "fromColumnName": "StartDeltaMS"
+          },
+          "yAxis": {
+            "axisTitle": "Heading (Degrees)",
+            "fromColumnNames": [
+              "GyroNavX:RawYaw",
+              "LeftFollower:Heading",
+              "RGTFollower:Heading"
+            ]
+          },
+          "gains": null,
+          "chartType": "line",
+          "calcAreaDelta": null
         }
       ]
     },
