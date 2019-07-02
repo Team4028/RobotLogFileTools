@@ -28,16 +28,18 @@ namespace ProcessLogFile.Entities
     public class Graphset
     {
         public string setName { get; set; }
-        public Graph[] graphs { get; set; }
+        public Linegraph[] lineGraphs { get; set; }
+        public Xygraph[] xyGraphs { get; set; }
     }
 
-    public class Graph
+    public class Linegraph
     {
         public string name { get; set; }
         public Xaxis xAxis { get; set; }
         public Yaxis yAxis { get; set; }
         public Gains gains { get; set; }
         public string chartType { get; set; }
+        public Calcareadelta calcAreaDelta { get; set; }
     }
 
     public class Xaxis
@@ -55,7 +57,32 @@ namespace ProcessLogFile.Entities
     public class Gains
     {
         public string pidGains { get; set; }
+        public string controlMode { get; set; }
         public string followerGains { get; set; }
     }
+
+    public class Calcareadelta
+    {
+        public string elaspedTime { get; set; }
+        public string target { get; set; }
+        public string actual { get; set; }
+    }
+
+    public class Xygraph
+    {
+        public string name { get; set; }
+        public Series[] series { get; set; }
+        public object gains { get; set; }
+        public string chartType { get; set; }
+        public object calcAreaDelta { get; set; }
+    }
+
+    public class Series
+    {
+        public string name { get; set; }
+        public string xAxisCoumnName { get; set; }
+        public string yAxisColumnName { get; set; }
+    }
+
 
 }

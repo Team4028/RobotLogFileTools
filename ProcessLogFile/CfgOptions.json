@@ -10,7 +10,7 @@
   "graphSets": [
     {
       "setName": "mp",
-      "graphs": [
+      "lineGraphs": [
         {
           "name": "Left Axis Velocity",
           "xAxis": {
@@ -28,8 +28,7 @@
             "pidGains": "Chassis:LeftPIDGains",
             "controlMode": "Chassis:LeftControlMode",
             "followerGains": "LeftFollower:Gains"
-          },
-          "chartType": "line"
+          }
         },
         {
           "name": "Right Axis Velocity",
@@ -48,8 +47,7 @@
             "pidGains": "Chassis:RgtPIDGains",
             "controlMode": "Chassis:RgtControlMode",
             "followerGains": "RgtFollower:Gains"
-          },
-          "chartType": "line"
+          }
         },
         {
           "name": "Left Axis Position",
@@ -68,8 +66,7 @@
             "pidGains": "Chassis:LeftPIDGains",
             "controlMode": "Chassis:LeftControlMode",
             "followerGains": "LeftFollower:Gains"
-          },
-          "chartType": "line"
+          }
         },
         {
           "name": "Right Axis Position",
@@ -88,8 +85,7 @@
             "pidGains": "Chassis:RgtPIDGains",
             "controlMode": "Chassis:RgtControlMode",
             "followerGains": "RgtFollower:Gains"
-          },
-          "chartType": "line"
+          }
         },
         {
           "name": "Heading",
@@ -106,14 +102,32 @@
             ]
           },
           "gains": null,
-          "chartType": "line",
+          "calcAreaDelta": null
+        }
+      ],
+      "xyGraphs": [
+        {
+          "name": "Overall Path Following",
+          "series": [
+            {
+              "name": "Left Target",
+              "xAxisCoumnName": "LeftFollower:X",
+              "yAxisColumnName": "LeftFollower:Y"
+            },
+            {
+              "name": "Right Target",
+              "xAxisCoumnName": "RgtFollower:X",
+              "yAxisColumnName": "RgtFollower:Y"
+            }
+          ],
+          "gains": null,
           "calcAreaDelta": null
         }
       ]
     },
     {
       "setName": "pid",
-      "graphs": [
+      "lineGraphs": [
         {
           "name": "Left Axis Velocity",
           "xAxis": {
@@ -132,7 +146,6 @@
             "controlMode": "Chassis:LeftControlMode",
             "followerGains": null
           },
-          "chartType": "line",
           "calcAreaDelta": {
             "elaspedTime": "StartDeltaMS",
             "target": "Chassis:LeftTrgtCmdVelInIPS",
@@ -157,7 +170,6 @@
             "controlMode": "Chassis:RgtControlMode",
             "followerGains": null
           },
-          "chartType": "line",
           "calcAreaDelta": {
             "elaspedTime": "StartDeltaMS",
             "target": "Chassis:RgtTrgtCmdVelInIPS",
@@ -177,7 +189,6 @@
             ]
           },
           "gains": null,
-          "chartType": "line",
           "calcAreaDelta": null
         }
       ]

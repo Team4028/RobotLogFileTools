@@ -52,9 +52,14 @@ namespace ProcessLogFile
             }
 
             // build a new graph for each one that was configured
-            foreach(GraphBE graph in graphSet.Graphs)
+            foreach(LineGraphBE lineGraph in graphSet.LineGraphs)
             {
-                BuildGraph(dataWorksheet, graph, columnNameIndex);
+                BuildLineGraph(dataWorksheet, lineGraph, columnNameIndex);
+            }
+
+            foreach (LineGraphBE xyGraph in graphSet.Graphs)
+            {
+                BuildXYGraph(dataWorksheet, xyGraph, columnNameIndex);
             }
 
             // save the workbook
@@ -63,6 +68,11 @@ namespace ProcessLogFile
             workbook.SaveAs(xlsFileName, FileFormat.OpenXMLWorkbook);
 
             return xlsFileName;
+        }
+
+        private static void BuildXYGraph(IWorksheet dataWorksheet, LineGraphBE xyGraph, Dictionary<string, int> columnNameIndex)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -102,12 +112,12 @@ namespace ProcessLogFile
         /// <param name="graphConfig">The graph configuration.</param>
         /// <param name="columnNameIndex">Index of the column name.</param>
         /// <exception cref="ApplicationException">... Error building graph: [{graphConfig.Name}], Expected cols: [{errList}</exception>
-        private static void BuildGraph(SpreadsheetGear.IWorksheet dataWorksheet, GraphBE graphConfig, Dictionary<string, int> columnNameIndex)
+        private static void BuildLineGraph(SpreadsheetGear.IWorksheet dataWorksheet, LineGraphBE lineGraphConfig, Dictionary<string, int> columnNameIndex)
         {
             SpreadsheetGear.IWorkbook workbook = dataWorksheet.Workbook;
             int columnIdx = -1;
             int xAxisTargetColumnIdx = -1;
-            string xAxisColumnName = graphConfig.XAxis.FromColumnName;
+            string xAxisColumnName = lineGraphConfig.XAxis.FromColumnName;
             List<string> missingColumnNames = new List<string>();
 
             // step 1: find the column we want to target for the XAxis
@@ -118,7 +128,7 @@ namespace ProcessLogFile
 
             // step 2: find the columns we want to target for the YAxis
             Dictionary<int, string> yAxisTargetColIdxs = new Dictionary<int, string>();
-            foreach (string yAxisColumnName in graphConfig.YAxis.FromColumnNames)
+            foreach (string yAxisColumnName in lineGraphConfig.YAxis.FromColumnNames)
             {
                 if (columnNameIndex.TryGetValue(yAxisColumnName, out columnIdx))
                 {
@@ -131,9 +141,9 @@ namespace ProcessLogFile
             }
 
             // step 3: find the columns we want to reference for the Gains
-            string pidGainsColumnName = graphConfig.Gains?.PIDGains;
-            string followerGainsColumnName = graphConfig.Gains?.FollowerGains;
-            string controlModeColumnName = graphConfig.Gains?.ControlMode;
+            string pidGainsColumnName = lineGraphConfig.Gains?.PIDGains;
+            string followerGainsColumnName = lineGraphConfig.Gains?.FollowerGains;
+            string controlModeColumnName = lineGraphConfig.Gains?.ControlMode;
 
             int pidGainsColumnIdx = -1;
             int followerGainsColumnIdx = -1;
@@ -166,27 +176,27 @@ namespace ProcessLogFile
                 }
             }
             //
-            if (!string.IsNullOrEmpty(graphConfig.XAxis.FromColumnName))
+            if (!string.IsNullOrEmpty(lineGraphConfig.XAxis.FromColumnName))
             {
-                if (!columnNameIndex.TryGetValue(graphConfig.XAxis.FromColumnName, out elapsedDeltaColumnIdx))
+                if (!columnNameIndex.TryGetValue(lineGraphConfig.XAxis.FromColumnName, out elapsedDeltaColumnIdx))
                 {
-                    missingColumnNames.Add(graphConfig.XAxis.FromColumnName);
+                    missingColumnNames.Add(lineGraphConfig.XAxis.FromColumnName);
                 }
             }
 
-            if (!string.IsNullOrEmpty(graphConfig.CalcAreaDelta?.TargetColumnName))
+            if (!string.IsNullOrEmpty(lineGraphConfig.CalcAreaDelta?.TargetColumnName))
             {
-                if (!columnNameIndex.TryGetValue(graphConfig.CalcAreaDelta.TargetColumnName, out targetColumnIdx))
+                if (!columnNameIndex.TryGetValue(lineGraphConfig.CalcAreaDelta.TargetColumnName, out targetColumnIdx))
                 {
-                    missingColumnNames.Add(graphConfig.CalcAreaDelta.TargetColumnName);
+                    missingColumnNames.Add(lineGraphConfig.CalcAreaDelta.TargetColumnName);
                 }
             }
 
-            if (!string.IsNullOrEmpty(graphConfig.CalcAreaDelta?.ActualColumnName))
+            if (!string.IsNullOrEmpty(lineGraphConfig.CalcAreaDelta?.ActualColumnName))
             {
-                if (!columnNameIndex.TryGetValue(graphConfig.CalcAreaDelta.ActualColumnName, out actualColumnIdx))
+                if (!columnNameIndex.TryGetValue(lineGraphConfig.CalcAreaDelta.ActualColumnName, out actualColumnIdx))
                 {
-                    missingColumnNames.Add(graphConfig.CalcAreaDelta.ActualColumnName);
+                    missingColumnNames.Add(lineGraphConfig.CalcAreaDelta.ActualColumnName);
                 }
             }
             //
@@ -194,12 +204,12 @@ namespace ProcessLogFile
             if (missingColumnNames.Count > 0)
             {
                 string errList = String.Join(",", missingColumnNames);
-                throw new ApplicationException($"... Error building graph: [{graphConfig.Name}], Expected cols: [{errList}] cannot be found!");
+                throw new ApplicationException($"... Error building graph: [{lineGraphConfig.Name}], Expected cols: [{errList}] cannot be found!");
             }
 
             // Step 4: add a new worksheet to hold the chart
             IWorksheet chartSheet = workbook.Worksheets.Add();
-            chartSheet.Name = graphConfig.Name;
+            chartSheet.Name = lineGraphConfig.Name;
 
             // Step 5.1: time to build the chart
             SpreadsheetGear.Shapes.IShape chartShape = chartSheet.Shapes.AddChart(1, 1, 500, 500);
@@ -228,7 +238,7 @@ namespace ProcessLogFile
             // Step 5.3: format the chart title
             chart.HasTitle = true;
             StringBuilder chartTitle = new StringBuilder();
-            chartTitle.AppendLine($"{graphConfig.Name}");
+            chartTitle.AppendLine($"{lineGraphConfig.Name}");
             // optional add follower gains only if avaialable
             if (pidGainsColumnIdx >= 0)
             {
@@ -239,9 +249,9 @@ namespace ProcessLogFile
             {
                 chartTitle.AppendLine($"Follower Gains: {dataWorksheet.Cells[1, followerGainsColumnIdx].Text}");
             }
-            if (graphConfig.CalcAreaDelta != null)
+            if (lineGraphConfig.CalcAreaDelta != null)
             {
-                (decimal posErr, decimal negErr) = CalcAreaDelta(dataWorksheet, elapsedDeltaColumnIdx, targetColumnIdx, actualColumnIdx, graphConfig.Name);
+                (decimal posErr, decimal negErr) = CalcAreaDelta(dataWorksheet, elapsedDeltaColumnIdx, targetColumnIdx, actualColumnIdx, lineGraphConfig.Name);
                 chartTitle.AppendLine($"Error Area (tot): {posErr} | {negErr}");
             }
 
@@ -258,13 +268,13 @@ namespace ProcessLogFile
             xAxis.HasTitle = true;
             xAxis.TickMarkSpacing = 100;    // 10Msec per step * 100 = gidline every second
             IAxisTitle xAxisTitle = xAxis.AxisTitle;
-            xAxisTitle.Text = graphConfig.XAxis.AxisTitle;
+            xAxisTitle.Text = lineGraphConfig.XAxis.AxisTitle;
 
             IAxis yAxis = chart.Axes[AxisType.Value, AxisGroup.Primary];
             yAxis.HasTitle = true;
             yAxis.TickLabels.NumberFormat = "General";
             IAxisTitle yAxisTitle = yAxis.AxisTitle;
-            yAxisTitle.Text = graphConfig.YAxis.AxisTitle;
+            yAxisTitle.Text = lineGraphConfig.YAxis.AxisTitle;
         }
 
         private static string GetPIDGains(SpreadsheetGear.IWorksheet dataWorksheet, int pidGainsColumnIdx, int controlModeColumnIdx)

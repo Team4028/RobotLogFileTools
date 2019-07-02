@@ -45,11 +45,14 @@ public class GraphSetBE
     [JsonProperty(PropertyName = "setName")]
     public string SetName { get; set; }
 
-    [JsonProperty(PropertyName = "graphs")]
-    public List<GraphBE> Graphs { get; set; }
+    [JsonProperty(PropertyName = "lineGraphs")]
+    public List<LineGraphBE> LineGraphs { get; set; }
+
+    [JsonProperty(PropertyName = "xyGraphs")]
+    public List<XYGraphBE> XYGraphs { get; set; }
 }
 
-public class GraphBE
+public class LineGraphBE
 {
     [JsonProperty(PropertyName = "name")]
     public string Name { get; set; }
@@ -63,13 +66,14 @@ public class GraphBE
     [JsonProperty(PropertyName = "gains")]
     public GainsBE Gains { get; set; }
 
-    [JsonProperty(PropertyName = "chartType")]
-    public string ChartType { get; set; }
+    //[JsonProperty(PropertyName = "chartType")]
+    //public string ChartType { get; set; }
 
     [JsonProperty(PropertyName = "calcAreaDelta")]
     public CalcAreaDeltaBE CalcAreaDelta { get; set; }
 }
 
+#region ==== Line Graphs =====
 public class XAxisBE
 {
     [JsonProperty(PropertyName = "axisTitle")]
@@ -111,3 +115,38 @@ public class CalcAreaDeltaBE
     [JsonProperty(PropertyName = "actual")]
     public string ActualColumnName { get; set; }
 }
+#endregion
+
+#region ==== XY Graphs =====
+public class XYGraphBE
+{
+    [JsonProperty(PropertyName = "name")]
+    public string Name { get; set; }
+
+    [JsonProperty(PropertyName = "series")]
+    public List<XYSeriesBE> series { get; set; }
+
+    [JsonProperty(PropertyName = "gains")]
+    public GainsBE Gains { get; set; }
+
+    [JsonProperty(PropertyName = "calcFinalErrorDelta")]
+    public CalcFinalErrorDeltaBE CalcFinalErrorDeltaBE { get; set; }
+}
+
+public class XYSeriesBE
+{
+    [JsonProperty(PropertyName = "name")]
+    public string Name { get; set; }
+
+    [JsonProperty(PropertyName = "xAxisCoumnName")]
+    public string XAxisCoumnName { get; set; }
+
+    [JsonProperty(PropertyName = "yAxisColumnName")]
+    public string YAxisColumnName { get; set; }
+}
+
+public class CalcFinalErrorDeltaBE
+{
+
+}
+#endregion
