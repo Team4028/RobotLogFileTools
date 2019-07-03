@@ -9,6 +9,7 @@ namespace ProcessLogFile.Entities
     }
 
 
+
     public class Rootobject
     {
         public Roborio roboRio { get; set; }
@@ -28,8 +29,15 @@ namespace ProcessLogFile.Entities
     public class Graphset
     {
         public string setName { get; set; }
+        public Angleconversion[] angleConversion { get; set; }
         public Linegraph[] lineGraphs { get; set; }
         public Xygraph[] xyGraphs { get; set; }
+    }
+
+    public class Angleconversion
+    {
+        public string radians { get; set; }
+        public string boundedDegrees { get; set; }
     }
 
     public class Linegraph
@@ -38,7 +46,6 @@ namespace ProcessLogFile.Entities
         public Xaxis xAxis { get; set; }
         public Yaxis yAxis { get; set; }
         public Gains gains { get; set; }
-        public string chartType { get; set; }
         public Calcareadelta calcAreaDelta { get; set; }
     }
 
@@ -73,7 +80,6 @@ namespace ProcessLogFile.Entities
         public string name { get; set; }
         public Series[] series { get; set; }
         public object gains { get; set; }
-        public string chartType { get; set; }
         public object calcAreaDelta { get; set; }
     }
 

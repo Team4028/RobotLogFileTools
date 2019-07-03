@@ -15,7 +15,7 @@ namespace ProcessLogFile
     /// </summary>
     static class GraphBuilder
     {
-        public static string ProcessLogFile(string logFilePathName, string graphSetName, CfgOptionsBE config)
+        public static string ProcessLogFile(string logFilePathName, string graphSetName, GraphConfigsBE config)
         {
             // Activate SpreadsheetGear
             SpreadsheetGear.Factory.SetSignedLicense("SpreadsheetGear.License, Type=Trial, Product=BND, Expires=2019-07-27, Company=Tom Bruns, Email=xtobr39@hotmail.com, Signature=orH+RFO9hRUB8SJXBSWQZJuXP9OfSkV9fLcU9suehfgA#dgunwBK9VssTgnfowKGWaqMNfVgwVetxEWbayzGM1uIA#K");
@@ -29,9 +29,6 @@ namespace ProcessLogFile
             // get a reference to the active (only) worksheet
             SpreadsheetGear.IWorksheet dataWorksheet = workbook.ActiveWorksheet;
             dataWorksheet.Name = System.IO.Path.GetFileNameWithoutExtension(logFilePathName);
-
-            // resize column widths to fit header text
-            dataWorksheet.UsedRange.Columns.AutoFit();
 
             // freeze 1st row
             dataWorksheet.WindowInfo.ScrollColumn = 0;
@@ -51,6 +48,21 @@ namespace ProcessLogFile
                 throw new ApplicationException($"Requested GraphSet: [{graphSetName}], Options: [{String.Join(",", availableGraphSetNames)}]");
             }
 
+            // do any required conversions
+            if(graphSet.AngleConversions != null)
+            {
+                foreach(AngleConversionBE angleConversion in graphSet.AngleConversions)
+                {
+                    PerformConversion(dataWorksheet, angleConversion, columnNameIndex);
+                }
+
+                // rebuild column name index
+                columnNameIndex = BuildColumnNameXref(dataWorksheet);
+            }
+
+            // resize column widths to fit header text
+            dataWorksheet.UsedRange.Columns.AutoFit();
+
             // build a new graph for each one that was configured
             foreach (LineGraphBE lineGraph in graphSet.LineGraphs)
             {
@@ -68,6 +80,50 @@ namespace ProcessLogFile
             workbook.SaveAs(xlsFileName, FileFormat.OpenXMLWorkbook);
 
             return xlsFileName;
+        }
+
+        private static void PerformConversion(IWorksheet dataWorksheet, AngleConversionBE angleConversion, Dictionary<string, int> columnNameIndex)
+        {
+            // get source column
+            int sourceColumnIndex = 0;
+            if (!columnNameIndex.TryGetValue(angleConversion.Radians, out sourceColumnIndex))
+            {
+                throw new ApplicationException($"Cannot find column name: $[{angleConversion.Radians}]");
+            }
+
+            // get target column
+            int targetColumnIndex = dataWorksheet.UsedRange.ColumnCount;
+            columnNameIndex.Add(angleConversion.BoundedDegrees, targetColumnIndex);
+
+            int maxRows = dataWorksheet.UsedRange.RowCount;
+
+            // set column header
+            dataWorksheet.Cells[0, targetColumnIndex].Value = angleConversion.BoundedDegrees;
+
+            // working variable
+            decimal angleInRadians = 0.0M;
+            decimal angleInDegrees = 0.0M;
+            decimal boundedAngleInDegrees = 0.0M;
+
+            // loop thru all the rows and add the new column
+            for (int rowIndex = 1; rowIndex < maxRows; rowIndex++)
+            {
+                // get the radians
+                angleInRadians = Decimal.Parse(dataWorksheet.Cells[rowIndex, sourceColumnIndex].Text);
+
+                // convert to degrees
+                angleInDegrees = (180.0M * angleInRadians) / (Decimal)Math.PI;
+
+                // Bound an angle (in degrees) to -180 to 180 degrees.
+                if (angleInDegrees >= 180.0M)
+                    boundedAngleInDegrees = angleInDegrees - 360.0M;
+                else if (angleInDegrees <= -180.0M)
+                    boundedAngleInDegrees = angleInDegrees + 360.0M;
+                else
+                    boundedAngleInDegrees = angleInDegrees;
+
+                dataWorksheet.Cells[rowIndex, targetColumnIndex].Value = boundedAngleInDegrees;
+            }
         }
 
         private static void BuildXYGraph(IWorksheet dataWorksheet, XYGraphBE xyGraph, Dictionary<string, int> columnNameIndex)
@@ -89,16 +145,21 @@ namespace ProcessLogFile
             IRange usedColumns = usedRange.Columns;
 
             int columnCount = usedColumns.ColumnCount;
+            string columnName = string.Empty;
 
             for(int colIndex = 0; colIndex <= columnCount-1; colIndex++)
             {
                 try
                 {
-                    colNameXref.Add(dataWorksheet.Cells[0, colIndex].Text, colIndex);
+                    columnName = dataWorksheet.Cells[0, colIndex].Text;
+                    if (!string.IsNullOrEmpty(columnName))
+                    {
+                        colNameXref.Add(dataWorksheet.Cells[0, colIndex].Text, colIndex);
+                    }
                 }
                 catch (Exception ex)
                 {
-
+                    throw new ApplicationException(ex.ToString());
                 }
             }
 
@@ -231,7 +292,18 @@ namespace ProcessLogFile
                 chartSeries = chart.SeriesCollection.Add();
                 chartSeries.XValues = $"={xAxisColumn.ToString()}"; // "Sheet1!$A2:$A200";
                 chartSeries.Values = yAxisColumn.ToString();  //"Sheet1!$H2:$H200";
-                chartSeries.ChartType = ChartType.Line;
+
+                switch (lineGraphConfig.ChartTypeOverride)
+                {
+                    case @"XYScatter":
+                        chartSeries.ChartType = ChartType.XYScatter;
+                        break;
+
+                    default:
+                        chartSeries.ChartType = ChartType.Line;
+                        break;
+                }
+                
                 chartSeries.Name = seriesName;
             }
 
@@ -266,13 +338,23 @@ namespace ProcessLogFile
             IAxis xAxis = chart.Axes[AxisType.Category];
             xAxis.HasMinorGridlines = true;
             xAxis.HasTitle = true;
-            xAxis.TickMarkSpacing = 100;    // 10Msec per step * 100 = gidline every second
+            if (chart.ChartType == ChartType.Line)
+            {
+                // this option not valid on xy graphs
+                xAxis.TickMarkSpacing = 100;    // 10Msec per step * 100 = gidline every second
+            }
             IAxisTitle xAxisTitle = xAxis.AxisTitle;
             xAxisTitle.Text = lineGraphConfig.XAxis.AxisTitle;
 
             IAxis yAxis = chart.Axes[AxisType.Value, AxisGroup.Primary];
             yAxis.HasTitle = true;
             yAxis.TickLabels.NumberFormat = "General";
+
+            if (lineGraphConfig.YAxis.MajorUnitOverride.HasValue)
+            {
+                yAxis.MajorUnit = (double)lineGraphConfig.YAxis.MajorUnitOverride.Value;
+            }
+
             IAxisTitle yAxisTitle = yAxis.AxisTitle;
             yAxisTitle.Text = lineGraphConfig.YAxis.AxisTitle;
         }

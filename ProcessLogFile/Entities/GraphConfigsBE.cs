@@ -9,7 +9,7 @@ namespace ProcessLogFile.Entities
     /// <summary>
     /// These classes represent the Config of the Graphs to generate stored in a JSON file
     /// </summary>
-    class CfgOptionsBE
+    class GraphConfigsBE
     {
         [JsonProperty(PropertyName = "roboRio")]
         public RoboRioBE RoboRio { get; set; }
@@ -45,11 +45,23 @@ public class GraphSetBE
     [JsonProperty(PropertyName = "setName")]
     public string SetName { get; set; }
 
+    [JsonProperty(PropertyName = "angleConversions")]
+    public List<AngleConversionBE> AngleConversions { get; set; }
+
     [JsonProperty(PropertyName = "lineGraphs")]
     public List<LineGraphBE> LineGraphs { get; set; }
 
     [JsonProperty(PropertyName = "xyGraphs")]
     public List<XYGraphBE> XYGraphs { get; set; }
+}
+
+public class AngleConversionBE
+{
+    [JsonProperty(PropertyName = "radians")]
+    public string Radians { get; set; }
+
+    [JsonProperty(PropertyName = "boundedDegrees")]
+    public string BoundedDegrees { get; set; }
 }
 
 public class LineGraphBE
@@ -62,6 +74,9 @@ public class LineGraphBE
 
     [JsonProperty(PropertyName = "yAxis")]
     public YAxisBE YAxis { get; set; }
+
+    [JsonProperty(PropertyName = "chartTypeOverride")]
+    public string ChartTypeOverride  { get; set; }
 
     [JsonProperty(PropertyName = "gains")]
     public GainsBE Gains { get; set; }
@@ -90,6 +105,9 @@ public class YAxisBE
 
     [JsonProperty(PropertyName = "fromColumnNames")]
     public List<string> FromColumnNames { get; set; }
+
+    [JsonProperty(PropertyName = "majorUnitOverride")]
+    public decimal? MajorUnitOverride { get; set; }
 }
 
 public class GainsBE

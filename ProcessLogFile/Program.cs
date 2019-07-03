@@ -101,13 +101,13 @@ namespace ProcessLogFile
         }
 
         // this method loads the config file from a external json file
-        private static CfgOptionsBE LoadConfig(string configFileName)
+        private static GraphConfigsBE LoadConfig(string configFileName)
         {
-            CfgOptionsBE config = null;
+            GraphConfigsBE config = null;
 
             try
             {
-                config = JsonConvert.DeserializeObject<CfgOptionsBE>(File.ReadAllText(configFileName));
+                config = JsonConvert.DeserializeObject<GraphConfigsBE>(File.ReadAllText(configFileName));
             }
             catch (Exception ex)
             {
@@ -123,7 +123,7 @@ namespace ProcessLogFile
         /// <param name="config">The configuration.</param>
         /// <returns>System.String.</returns>
         /// <see cref="https://github.com/sshnet/SSH.NET/"/>
-        private static string CopyLatestFileFromRoboRio(CfgOptionsBE config)
+        private static string CopyLatestFileFromRoboRio(GraphConfigsBE config)
         {
             string targetLogFilePathName = string.Empty;
 

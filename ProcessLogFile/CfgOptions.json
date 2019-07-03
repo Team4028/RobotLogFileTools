@@ -10,6 +10,16 @@
   "graphSets": [
     {
       "setName": "mp",
+      "angleConversions": [
+        {
+          "radians": "LeftFollower:Heading",
+          "boundedDegrees": "LeftFollower:HeadingInDeg"
+        },
+        {
+          "radians": "RgtFollower:Heading",
+          "boundedDegrees": "RgtFollower:HeadingInDeg"
+        }
+      ],
       "lineGraphs": [
         {
           "name": "Left Axis Velocity",
@@ -88,7 +98,7 @@
           }
         },
         {
-          "name": "Heading",
+          "name": "Robot Heading",
           "xAxis": {
             "axisTitle": "Elapsed Time (mSec)",
             "fromColumnName": "StartDeltaMS"
@@ -97,10 +107,31 @@
             "axisTitle": "Heading (Degrees)",
             "fromColumnNames": [
               "GyroNavX:RawYaw",
-              "LeftFollower:Heading",
-              "RGTFollower:Heading"
+              "LeftFollower:HeadingInDeg",
+              "RgtFollower:HeadingInDeg"
             ]
           },
+          "gains": {
+            "pidGains": "Chassis:RgtPIDGains",
+            "controlMode": "Chassis:RgtControlMode",
+            "followerGains": "RgtFollower:Gains"
+          },
+          "calcAreaDelta": null
+        },
+        {
+          "name": "Scan Times",
+          "xAxis": {
+            "axisTitle": "Elapsed Time (mSec)",
+            "fromColumnName": "StartDeltaMS"
+          },
+          "yAxis": {
+            "axisTitle": "Scan Time (mSec)",
+            "fromColumnNames": [
+              "LastScanDeltaMS"
+            ],
+            "majorUnitOverride": "1.0"
+          },
+          "chartTypeOverride": "XYScatter",
           "gains": null,
           "calcAreaDelta": null
         }
@@ -127,6 +158,16 @@
     },
     {
       "setName": "pid",
+      "angleConversions": [
+        {
+          "radians": "LeftFollower:Heading",
+          "boundedDegrees": "LeftFollower:HeadingInDeg"
+        },
+        {
+          "radians": "RgtFollower:Heading",
+          "boundedDegrees": "RgtFollower:HeadingInDeg"
+        }
+      ],
       "lineGraphs": [
         {
           "name": "Left Axis Velocity",
