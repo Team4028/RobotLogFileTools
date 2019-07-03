@@ -38,6 +38,11 @@
             "pidGains": "Chassis:LeftPIDGains",
             "controlMode": "Chassis:LeftControlMode",
             "followerGains": "LeftFollower:Gains"
+          },
+          "calcAreaDelta": {
+            "elaspedTime": "StartDeltaMS",
+            "target": "LeftFollower:SegmentVel",
+            "actual": "Chassis:LeftActVelInIPS"
           }
         },
         {
@@ -57,6 +62,11 @@
             "pidGains": "Chassis:RgtPIDGains",
             "controlMode": "Chassis:RgtControlMode",
             "followerGains": "RgtFollower:Gains"
+          },
+          "calcAreaDelta": {
+            "elaspedTime": "StartDeltaMS",
+            "target": "RgtFollower:SegmentVel",
+            "actual": "Chassis:RgtActVelInIPS"
           }
         },
         {

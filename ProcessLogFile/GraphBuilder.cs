@@ -324,7 +324,7 @@ namespace ProcessLogFile
             if (lineGraphConfig.CalcAreaDelta != null)
             {
                 (decimal posErr, decimal negErr) = CalcAreaDelta(dataWorksheet, elapsedDeltaColumnIdx, targetColumnIdx, actualColumnIdx, lineGraphConfig.Name);
-                chartTitle.AppendLine($"Error Area (tot): {posErr} | {negErr}");
+                chartTitle.AppendLine($"Error Area (tot): {posErr:N0} | {negErr:N0}");
             }
 
             chart.ChartTitle.Text = chartTitle.ToString();
