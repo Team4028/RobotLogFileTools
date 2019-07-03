@@ -60,6 +60,10 @@ namespace ProcessLogFile
                 // rebuild column name index
                 columnNameIndex = BuildColumnNameXref(dataWorksheet);
             }
+            //if(graphSet.xx != null)
+            //{
+
+            //}
 
             // resize column widths to fit header text
             dataWorksheet.UsedRange.Columns.AutoFit();
@@ -612,8 +616,8 @@ namespace ProcessLogFile
             decimal thisLoopAreaDelta = -0;
 
             int maxRows = dataWorksheet.UsedRange.RowCount;
-            int lastLoopElapsedTimeInMS = 0;
-            int thisLoopElapsedTimeInMS = 0;
+            decimal lastLoopElapsedTimeInMS = 0;
+            decimal thisLoopElapsedTimeInMS = 0;
             decimal targetValue = 0;
             decimal actualValue = 0;
 
@@ -622,7 +626,7 @@ namespace ProcessLogFile
 
             for (int rowIndex = 1; rowIndex < maxRows; rowIndex++)
             {
-                thisLoopElapsedTimeInMS = Int32.Parse(dataWorksheet.Cells[rowIndex, elapsedDeltaColumnIdx].Text);
+                thisLoopElapsedTimeInMS = decimal.Parse(dataWorksheet.Cells[rowIndex, elapsedDeltaColumnIdx].Text);
                 targetValue = decimal.Parse(dataWorksheet.Cells[rowIndex, targetColumnIdx].Text);
                 actualValue = decimal.Parse(dataWorksheet.Cells[rowIndex, actualColumnIdx].Text);
 

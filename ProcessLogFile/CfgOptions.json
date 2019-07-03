@@ -162,13 +162,13 @@
             },
             {
               "name": "Left Actual",
-              "xAxisCoumnName": "LeftFollower:X",
-              "yAxisColumnName": "LeftFollower:Y"
+              "xAxisCoumnName": "Chassis:LeftX",
+              "yAxisColumnName": "Chassis:LeftY"
             },
             {
               "name": "Right Actual",
-              "xAxisCoumnName": "RgtFollower:X",
-              "yAxisColumnName": "RgtFollower:Y"
+              "xAxisCoumnName": "Chassis:RgtX",
+              "yAxisColumnName": "Chassis:RgtY"
             }
           ],
           "xAxisTitle": "X Position (inches)",

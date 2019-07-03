@@ -2,7 +2,7 @@
   "profiles": {
     "ProcessLogFile": {
       "commandName": "Project",
-      "commandLineArgs": "-f \"C:\\Temp\\testrobot\\20190702_193900_761_Auton.tsv\" -g MP"
+      "commandLineArgs": "-d -g MP"
     }
   }
 }
