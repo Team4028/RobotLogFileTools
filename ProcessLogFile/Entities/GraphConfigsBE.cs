@@ -147,8 +147,14 @@ public class XYGraphBE
     [JsonProperty(PropertyName = "gains")]
     public GainsBE Gains { get; set; }
 
+    [JsonProperty(PropertyName = "xAxisTitle")]
+    public string XAxisTitle { get; set; }
+
+    [JsonProperty(PropertyName = "yAxisTitle")]
+    public string YAxisTitle { get; set; }
+
     [JsonProperty(PropertyName = "calcFinalErrorDelta")]
-    public CalcFinalErrorDeltaBE CalcFinalErrorDeltaBE { get; set; }
+    public CalcFinalErrorDeltaBE CalcFinalErrorDelta { get; set; }
 }
 
 public class XYSeriesBE

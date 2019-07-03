@@ -14,6 +14,7 @@ namespace ProcessLogFile
 {
     class Program
     {
+        // this is the name of config file, it shoudl always be in the folder with the executable
         const string CONFIG_FILENAME = @"CfgOptions.json";
 
         static int Main(string[] args)
@@ -26,19 +27,22 @@ namespace ProcessLogFile
             Console.WriteLine($"FRC Team 4028 Log File Graphing Tool   [v{fileVersion}]");
             System.Console.ResetColor();
 
-            // load config
-            var config = LoadConfig(CONFIG_FILENAME);
-            if (config == null) return -1;
-
-            string logFilePathName = string.Empty;
-
             try
             {
+                // load config from file
+                var config = LoadConfig(CONFIG_FILENAME);
+                if (config == null)
+                {
+                    throw new ApplicationException($"Cannot locate the config file: [{CONFIG_FILENAME}], it should be in the folder with: [{assemblyLocation}]");
+                }
+
+                string logFilePathName = string.Empty;
+
                 // parse command line options
                 Parser.Default.ParseArguments<CmdLineOptionsBE>(args)
                         .WithParsed<CmdLineOptionsBE>(o =>
                         {
-                            // pull file from roborio
+                            // the file will be pulled from roborio using SFTP
                             if (o.IsPullLatestFromRoboRIO)
                             {
                                 if (!IsServerAvailable(config.RoboRio.Ipv4Address, 22))
@@ -48,6 +52,7 @@ namespace ProcessLogFile
 
                                 logFilePathName = CopyLatestFileFromRoboRio(config);
                             }
+                            // the file will come from a local folder
                             else if (!string.IsNullOrEmpty(o.CSVFileName))
                             {
                                 string fileExtension = System.IO.Path.GetExtension(o.CSVFileName).ToLower();
@@ -107,6 +112,7 @@ namespace ProcessLogFile
 
             try
             {
+                // deserialze from JSON
                 config = JsonConvert.DeserializeObject<GraphConfigsBE>(File.ReadAllText(configFileName));
             }
             catch (Exception ex)
@@ -204,6 +210,12 @@ namespace ProcessLogFile
             return targetLogFilePathName;
         }
 
+        /// <summary>
+        /// Utility to check if a remote address is reachable
+        /// </summary>
+        /// <param name="server"></param>
+        /// <param name="port"></param>
+        /// <returns></returns>
         private static bool IsServerAvailable(string server, int port)
         {
             using (TcpClient client = new TcpClient())

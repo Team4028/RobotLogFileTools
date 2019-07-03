@@ -159,8 +159,20 @@
               "name": "Right Target",
               "xAxisCoumnName": "RgtFollower:X",
               "yAxisColumnName": "RgtFollower:Y"
+            },
+            {
+              "name": "Left Actual",
+              "xAxisCoumnName": "LeftFollower:X",
+              "yAxisColumnName": "LeftFollower:Y"
+            },
+            {
+              "name": "Right Actual",
+              "xAxisCoumnName": "RgtFollower:X",
+              "yAxisColumnName": "RgtFollower:Y"
             }
           ],
+          "xAxisTitle": "X Position (inches)",
+          "yAxisTitle": "Y Position (inches)",
           "gains": null,
           "calcAreaDelta": null
         }
