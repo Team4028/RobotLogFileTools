@@ -52,12 +52,12 @@ namespace ProcessLogFile
             }
 
             // build a new graph for each one that was configured
-            foreach(LineGraphBE lineGraph in graphSet.LineGraphs)
+            foreach (LineGraphBE lineGraph in graphSet.LineGraphs)
             {
                 BuildLineGraph(dataWorksheet, lineGraph, columnNameIndex);
             }
 
-            foreach (LineGraphBE xyGraph in graphSet.Graphs)
+            foreach (XYGraphBE xyGraph in graphSet.XYGraphs)
             {
                 BuildXYGraph(dataWorksheet, xyGraph, columnNameIndex);
             }
@@ -70,9 +70,9 @@ namespace ProcessLogFile
             return xlsFileName;
         }
 
-        private static void BuildXYGraph(IWorksheet dataWorksheet, LineGraphBE xyGraph, Dictionary<string, int> columnNameIndex)
+        private static void BuildXYGraph(IWorksheet dataWorksheet, XYGraphBE xyGraph, Dictionary<string, int> columnNameIndex)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         /// <summary>
@@ -156,7 +156,7 @@ namespace ProcessLogFile
             {
                 if (!columnNameIndex.TryGetValue(pidGainsColumnName, out pidGainsColumnIdx))
                 {
-                    missingColumnNames.Add(pidGainsColumnName);
+                    //missingColumnNames.Add(pidGainsColumnName);
                 }
             }
 
@@ -172,10 +172,10 @@ namespace ProcessLogFile
             {
                 if (!columnNameIndex.TryGetValue(controlModeColumnName, out controlModeColumnIdx))
                 {
-                    missingColumnNames.Add(controlModeColumnName);
+                    //missingColumnNames.Add(controlModeColumnName);
                 }
             }
-            //
+            
             if (!string.IsNullOrEmpty(lineGraphConfig.XAxis.FromColumnName))
             {
                 if (!columnNameIndex.TryGetValue(lineGraphConfig.XAxis.FromColumnName, out elapsedDeltaColumnIdx))
