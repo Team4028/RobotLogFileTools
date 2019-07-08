@@ -152,23 +152,23 @@
           "series": [
             {
               "name": "Left Target",
-              "xAxisCoumnName": "LeftFollower:X",
-              "yAxisColumnName": "LeftFollower:Y"
+              "xAxisCoumnName": "LeftFollower:PoseX",
+              "yAxisColumnName": "LeftFollower:PoseY"
             },
             {
               "name": "Right Target",
-              "xAxisCoumnName": "RgtFollower:X",
-              "yAxisColumnName": "RgtFollower:Y"
+              "xAxisCoumnName": "RgtFollower:PoseX",
+              "yAxisColumnName": "RgtFollower:PoseY"
             },
             {
               "name": "Left Actual",
-              "xAxisCoumnName": "Chassis:LeftX",
-              "yAxisColumnName": "Chassis:LeftY"
+              "xAxisCoumnName": "Chassis:LeftPoseX",
+              "yAxisColumnName": "Chassis:LeftPoseY"
             },
             {
               "name": "Right Actual",
-              "xAxisCoumnName": "Chassis:RgtX",
-              "yAxisColumnName": "Chassis:RgtY"
+              "xAxisCoumnName": "Chassis:RgtPoseX",
+              "yAxisColumnName": "Chassis:RgtPoseY"
             }
           ],
           "xAxisTitle": "X Position (inches)",
