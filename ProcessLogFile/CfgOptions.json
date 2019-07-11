@@ -20,6 +20,7 @@
           "boundedDegrees": "RgtFollower:HeadingInDeg"
         }
       ],
+      "pathName": "Follower:PathName",
       "lineGraphs": [
         {
           "name": "Left Axis Velocity",
@@ -119,7 +120,8 @@
               "GyroNavX:RawYaw",
               "LeftFollower:HeadingInDeg",
               "RgtFollower:HeadingInDeg"
-            ]
+            ],
+            "yAxisValuesInReverseOrder": true
           },
           "gains": {
             "pidGains": "Chassis:RgtPIDGains",
@@ -173,7 +175,12 @@
           ],
           "xAxisTitle": "X Position (inches)",
           "yAxisTitle": "Y Position (inches)",
-          "gains": null,
+          "yAxisValuesInReverseOrder": true,
+          "gains": {
+            "pidGains": "Chassis:LeftPIDGains",
+            "controlMode": "Chassis:LeftControlMode",
+            "followerGains": "LeftFollower:Gains"
+          },
           "calcAreaDelta": null
         }
       ]

@@ -68,17 +68,19 @@ namespace ProcessLogFile
             // resize column widths to fit header text
             dataWorksheet.UsedRange.Columns.AutoFit();
 
+            string pathNameColumnName = graphSet.PathName;
+
             // build a new line graph for each one in the selected graphset
             foreach (LineGraphBE lineGraph in graphSet.LineGraphs)
             {
-                BuildLineGraph(dataWorksheet, lineGraph, columnNameIndex);
+                BuildLineGraph(dataWorksheet, lineGraph, columnNameIndex, pathNameColumnName);
             }
 
             // build a new XY graph for each one in the selected graphset
             // fyi: these were separated because they require slightly different config data structures
             foreach (XYGraphBE xyGraph in graphSet.XYGraphs)
             {
-                BuildXYGraph(dataWorksheet, xyGraph, columnNameIndex);
+                BuildXYGraph(dataWorksheet, xyGraph, columnNameIndex, pathNameColumnName);
             }
 
             // save the workbook
@@ -187,7 +189,7 @@ namespace ProcessLogFile
         /// <param name="graphConfig">The graph configuration.</param>
         /// <param name="columnNameIndex">Index of the column name.</param>
         /// <exception cref="ApplicationException">... Error building graph: [{graphConfig.Name}], Expected cols: [{errList}</exception>
-        private static void BuildLineGraph(SpreadsheetGear.IWorksheet dataWorksheet, LineGraphBE lineGraphConfig, Dictionary<string, int> columnNameIndex)
+        private static void BuildLineGraph(SpreadsheetGear.IWorksheet dataWorksheet, LineGraphBE lineGraphConfig, Dictionary<string, int> columnNameIndex, string pathNameColumnName)
         {
             SpreadsheetGear.IWorkbook workbook = dataWorksheet.Workbook;
             int columnIdx = -1;
@@ -226,6 +228,7 @@ namespace ProcessLogFile
             int elapsedDeltaColumnIdx = -1;
             int targetColumnIdx = -1;
             int actualColumnIdx = -1;
+            int pathNameColumnIdx = -1;
 
             if (!string.IsNullOrEmpty(pidGainsColumnName))
             {
@@ -274,6 +277,15 @@ namespace ProcessLogFile
                     missingColumnNames.Add(lineGraphConfig.CalcAreaDelta.ActualColumnName);
                 }
             }
+
+            if (!string.IsNullOrEmpty(pathNameColumnName))
+            {
+                if (!columnNameIndex.TryGetValue(pathNameColumnName, out pathNameColumnIdx))
+                {
+                    missingColumnNames.Add(pathNameColumnName);
+                }
+            }
+
             //
             // stop if any were missing
             if (missingColumnNames.Count > 0)
@@ -324,13 +336,14 @@ namespace ProcessLogFile
             // Step 5.3: format the chart title
             chart.HasTitle = true;
             StringBuilder chartTitle = new StringBuilder();
-            chartTitle.AppendLine($"{lineGraphConfig.Name}");
-            // optional add follower gains only if avaialable
+            string pathName = dataWorksheet.Cells[1, pathNameColumnIdx].Text;
+            chartTitle.AppendLine($"{lineGraphConfig.Name} | Path: [{pathName}]");
+            // optional add follower gains only if available
             if (pidGainsColumnIdx >= 0)
             {
                 chartTitle.AppendLine($"PID Gains: {GetPIDGains(dataWorksheet, pidGainsColumnIdx, controlModeColumnIdx)}");
             }
-            // optional add follower gains only if avaialable
+            // optional add follower gains only if available
             if (followerGainsColumnIdx >= 0)
             {
                 chartTitle.AppendLine($"Follower Gains: {dataWorksheet.Cells[1, followerGainsColumnIdx].Text}");
@@ -363,6 +376,7 @@ namespace ProcessLogFile
             IAxis yAxis = chart.Axes[AxisType.Value, AxisGroup.Primary];
             yAxis.HasTitle = true;
             yAxis.TickLabels.NumberFormat = "General";
+            yAxis.ReversePlotOrder = lineGraphConfig.YAxis.IsYAxisValuesInReverseOrder;
 
             if (lineGraphConfig.YAxis.MajorUnitOverride.HasValue)
             {
@@ -379,38 +393,16 @@ namespace ProcessLogFile
         /// <param name="dataWorksheet"></param>
         /// <param name="xyGraph"></param>
         /// <param name="columnNameIndex"></param>
-        private static void BuildXYGraph(IWorksheet dataWorksheet, XYGraphBE xyGraphConfig, Dictionary<string, int> columnNameIndex)
+        private static void BuildXYGraph(IWorksheet dataWorksheet, XYGraphBE xyGraphConfig, Dictionary<string, int> columnNameIndex, string pathNameColumnName)
         {
             SpreadsheetGear.IWorkbook workbook = dataWorksheet.Workbook;
-            //int columnIdx = -1;
-            //int xAxisTargetColumnIdx = -1;
-            //string xAxisColumnName = lineGraphConfig.XAxis.FromColumnName;
+
             List<string> missingColumnNames = new List<string>();
 
-            //// step 1: find the column we want to target for the XAxis
-            //if (!columnNameIndex.TryGetValue(xAxisColumnName, out xAxisTargetColumnIdx))
-            //{
-            //    missingColumnNames.Add(xAxisColumnName);
-            //}
-
-            //// step 2: find the columns we want to target for the YAxis
-            //Dictionary<int, string> yAxisTargetColIdxs = new Dictionary<int, string>();
-            //foreach (string yAxisColumnName in lineGraphConfig.YAxis.FromColumnNames)
-            //{
-            //    if (columnNameIndex.TryGetValue(yAxisColumnName, out columnIdx))
-            //    {
-            //        yAxisTargetColIdxs.Add(columnIdx, yAxisColumnName);
-            //    }
-            //    else
-            //    {
-            //        missingColumnNames.Add(yAxisColumnName);
-            //    }
-            //}
-
             //// step 3: find the columns we want to reference for the Gains
-            //string pidGainsColumnName = xyGraphConfig.Gains?.PIDGains;
-            //string followerGainsColumnName = xyGraphConfig.Gains?.FollowerGains;
-            //string controlModeColumnName = xyGraphConfig.Gains?.ControlMode;
+            string pidGainsColumnName = xyGraphConfig.Gains?.PIDGains;
+            string followerGainsColumnName = xyGraphConfig.Gains?.FollowerGains;
+            string controlModeColumnName = xyGraphConfig.Gains?.ControlMode;
 
             int pidGainsColumnIdx = -1;
             int followerGainsColumnIdx = -1;
@@ -418,30 +410,31 @@ namespace ProcessLogFile
             int elapsedDeltaColumnIdx = -1;
             int targetColumnIdx = -1;
             int actualColumnIdx = -1;
+            int pathNameColumnIdx = -1;
 
-            //if (!string.IsNullOrEmpty(pidGainsColumnName))
-            //{
-            //    if (!columnNameIndex.TryGetValue(pidGainsColumnName, out pidGainsColumnIdx))
-            //    {
-            //        //missingColumnNames.Add(pidGainsColumnName);
-            //    }
-            //}
+            if (!string.IsNullOrEmpty(pidGainsColumnName))
+            {
+                if (!columnNameIndex.TryGetValue(pidGainsColumnName, out pidGainsColumnIdx))
+                {
+                    //missingColumnNames.Add(pidGainsColumnName);
+                }
+            }
 
-            //if (!string.IsNullOrEmpty(followerGainsColumnName))
-            //{
-            //    if (!columnNameIndex.TryGetValue(followerGainsColumnName, out followerGainsColumnIdx))
-            //    {
-            //        missingColumnNames.Add(followerGainsColumnName);
-            //    }
-            //}
+            if (!string.IsNullOrEmpty(followerGainsColumnName))
+            {
+                if (!columnNameIndex.TryGetValue(followerGainsColumnName, out followerGainsColumnIdx))
+                {
+                    missingColumnNames.Add(followerGainsColumnName);
+                }
+            }
 
-            //if (!string.IsNullOrEmpty(controlModeColumnName))
-            //{
-            //    if (!columnNameIndex.TryGetValue(controlModeColumnName, out controlModeColumnIdx))
-            //    {
-            //        //missingColumnNames.Add(controlModeColumnName);
-            //    }
-            //}
+            if (!string.IsNullOrEmpty(controlModeColumnName))
+            {
+                if (!columnNameIndex.TryGetValue(controlModeColumnName, out controlModeColumnIdx))
+                {
+                    //missingColumnNames.Add(controlModeColumnName);
+                }
+            }
 
             //if (!string.IsNullOrEmpty(lineGraphConfig.XAxis.FromColumnName))
             //{
@@ -467,12 +460,22 @@ namespace ProcessLogFile
             //    }
             //}
 
+            if (!string.IsNullOrEmpty(pathNameColumnName))
+            {
+                if (!columnNameIndex.TryGetValue(pathNameColumnName, out pathNameColumnIdx))
+                {
+                    missingColumnNames.Add(pathNameColumnName);
+                }
+            }
+
             // stop if any were missing
             if (missingColumnNames.Count > 0)
             {
                 string errList = String.Join(",", missingColumnNames);
                 throw new ApplicationException($"... Error building graph: [{xyGraphConfig.Name}], Expected cols: [{errList}] cannot be found!");
             }
+
+            string pathName = dataWorksheet.Cells[1, pathNameColumnIdx].Text;
 
             // Step 4: add a new worksheet to hold the chart
             IWorksheet chartSheet = workbook.Worksheets.Add();
@@ -489,19 +492,7 @@ namespace ProcessLogFile
             ISeries chartSeries = null;
             string seriesName = string.Empty;
 
-            //// Step 5.2: add a chart series for each Y axis column in the config
-            //foreach (var kvp in yAxisTargetColIdxs)
-            //{
-            //    seriesName = dataWorksheet.Cells[0, kvp.Key].Text;
-            //    yAxisColumn = dataWorksheet.Cells[1, kvp.Key, lastRowIdx - 1, kvp.Key];
-
-            //    chartSeries = chart.SeriesCollection.Add();
-            //    chartSeries.XValues = $"={xAxisColumn.ToString()}"; // "Sheet1!$A2:$A200";
-            //    chartSeries.Values = yAxisColumn.ToString();  //"Sheet1!$H2:$H200";
-            //    chartSeries.ChartType = ChartType.XYScatter;
-            //    chartSeries.Name = seriesName;
-            //}
-
+            // Step 5.2: add a chart series for each Y axis column in the config
             int xAxisColumnIndex = -1;
             int yAxisColumnIndex = -1;
 
@@ -523,13 +514,13 @@ namespace ProcessLogFile
             // Step 5.3: format the chart title
             chart.HasTitle = true;
             StringBuilder chartTitle = new StringBuilder();
-            chartTitle.AppendLine($"{xyGraphConfig.Name}");
-            // optional add follower gains only if avaialable
+            chartTitle.AppendLine($"{xyGraphConfig.Name} | Path: [{pathName}]");
+            // optional add follower gains only if available
             if (pidGainsColumnIdx >= 0)
             {
                 chartTitle.AppendLine($"PID Gains: {GetPIDGains(dataWorksheet, pidGainsColumnIdx, controlModeColumnIdx)}");
             }
-            // optional add follower gains only if avaialable
+            // optional add follower gains only if available
             if (followerGainsColumnIdx >= 0)
             {
                 chartTitle.AppendLine($"Follower Gains: {dataWorksheet.Cells[1, followerGainsColumnIdx].Text}");
@@ -562,6 +553,7 @@ namespace ProcessLogFile
             IAxis yAxis = chart.Axes[AxisType.Value, AxisGroup.Primary];
             yAxis.HasTitle = true;
             yAxis.TickLabels.NumberFormat = "General";
+            yAxis.ReversePlotOrder = xyGraphConfig.IsYAxisValuesInReverseOrder;
 
             IAxisTitle yAxisTitle = yAxis.AxisTitle;
             yAxisTitle.Text = xyGraphConfig.YAxisTitle;
@@ -590,6 +582,9 @@ namespace ProcessLogFile
                 {
                     case "velocity":
                         return dataWorksheet.Cells[rowIndex, pidGainsColumnIdx].Text;
+
+                    default:
+                        return @"N/A Open Loop";
                 }
             }
           

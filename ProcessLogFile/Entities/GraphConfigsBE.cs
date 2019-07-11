@@ -48,6 +48,9 @@ public class GraphSetBE
     [JsonProperty(PropertyName = "angleConversions")]
     public List<AngleConversionBE> AngleConversions { get; set; }
 
+    [JsonProperty(PropertyName = "pathName")]
+    public string PathName { get; set; }
+
     [JsonProperty(PropertyName = "lineGraphs")]
     public List<LineGraphBE> LineGraphs { get; set; }
 
@@ -106,6 +109,9 @@ public class YAxisBE
     [JsonProperty(PropertyName = "fromColumnNames")]
     public List<string> FromColumnNames { get; set; }
 
+    [JsonProperty(PropertyName = "yAxisValuesInReverseOrder")]
+    public bool IsYAxisValuesInReverseOrder { get; set; }
+
     [JsonProperty(PropertyName = "majorUnitOverride")]
     public decimal? MajorUnitOverride { get; set; }
 }
@@ -152,6 +158,9 @@ public class XYGraphBE
 
     [JsonProperty(PropertyName = "yAxisTitle")]
     public string YAxisTitle { get; set; }
+
+    [JsonProperty(PropertyName = "yAxisValuesInReverseOrder")]
+    public bool IsYAxisValuesInReverseOrder { get; set; }
 
     [JsonProperty(PropertyName = "calcFinalErrorDelta")]
     public CalcFinalErrorDeltaBE CalcFinalErrorDelta { get; set; }
