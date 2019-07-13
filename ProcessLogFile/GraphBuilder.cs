@@ -60,15 +60,11 @@ namespace ProcessLogFile
                 // rebuild column name index
                 columnNameIndex = BuildColumnNameXref(dataWorksheet);
             }
-            //if(graphSet.xx != null)
-            //{
-
-            //}
 
             // resize column widths to fit header text
             dataWorksheet.UsedRange.Columns.AutoFit();
 
-            string pathNameColumnName = graphSet.PathName;
+            string pathNameColumnName = graphSet.PathNameColumnName;
 
             // build a new line graph for each one in the selected graphset
             foreach (LineGraphBE lineGraph in graphSet.LineGraphs)
@@ -81,6 +77,12 @@ namespace ProcessLogFile
             foreach (XYGraphBE xyGraph in graphSet.XYGraphs)
             {
                 BuildXYGraph(dataWorksheet, xyGraph, columnNameIndex, pathNameColumnName);
+            }
+
+            // create any new sheets to make analysis easier
+            foreach (NewSheetBE newSheet in graphSet.NewSheets)
+            {
+                BuildNewSheet(dataWorksheet, newSheet, columnNameIndex);
             }
 
             // save the workbook
@@ -650,5 +652,55 @@ namespace ProcessLogFile
             // round result
             return (totalPositiveAreaDelta, totalNegativeAreaDelta);
         }
+
+
+        private static void BuildNewSheet(IWorksheet dataWorksheet, NewSheetBE newSheetCfg, Dictionary<string, int> columnNameIndex)
+        {
+            // find sheet we are supposed to insert this one after
+            IWorksheet afterWorkSheet = dataWorksheet.Workbook.Worksheets[newSheetCfg.InsertAfterSheetName];
+
+            // add a new empty worksheet
+            IWorksheet newWorkSheet = dataWorksheet.Workbook.Worksheets.AddAfter(afterWorkSheet);
+            newWorkSheet.Name = newSheetCfg.NewSheetName;
+
+            // copy rows
+            int maxRows = dataWorksheet.UsedRange.RowCount;
+
+            int targetColumnIndex = 0;
+            // copy columm headers
+            foreach (string columnName in newSheetCfg.FromColumnNames)
+            {
+                // set column header
+                newWorkSheet.Cells[0, targetColumnIndex].Value = columnName;
+                targetColumnIndex++;
+            }
+
+            // loop thru all the rows on the source worksheet and copy the data
+            int sourceColumnIndex = 0;
+            for (int rowIndex = 1; rowIndex < maxRows; rowIndex++)
+            {
+                targetColumnIndex = 0;
+                foreach (string columnName in newSheetCfg.FromColumnNames)
+                {
+                    // find the source column index
+                    columnNameIndex.TryGetValue(columnName, out sourceColumnIndex);
+
+                    // copy the data
+                    newWorkSheet.Cells[rowIndex, targetColumnIndex].Value = dataWorksheet.Cells[rowIndex, sourceColumnIndex].Value;
+                    targetColumnIndex++;
+                }
+            }
+
+            // resize column widths to fit header text
+            newWorkSheet.UsedRange.Columns.AutoFit();
+
+            // freeze 1st row (to make scrolling more user friendly)
+            dataWorksheet.WindowInfo.ScrollColumn = 0;
+            dataWorksheet.WindowInfo.SplitColumns = 0;
+            dataWorksheet.WindowInfo.ScrollRow = 0;
+            dataWorksheet.WindowInfo.SplitRows = 1;
+            dataWorksheet.WindowInfo.FreezePanes = true;
+        }
+
     }
 }

@@ -48,14 +48,17 @@ public class GraphSetBE
     [JsonProperty(PropertyName = "angleConversions")]
     public List<AngleConversionBE> AngleConversions { get; set; }
 
-    [JsonProperty(PropertyName = "pathName")]
-    public string PathName { get; set; }
+    [JsonProperty(PropertyName = "pathNameColumnName")]
+    public string PathNameColumnName { get; set; }
 
     [JsonProperty(PropertyName = "lineGraphs")]
     public List<LineGraphBE> LineGraphs { get; set; }
 
     [JsonProperty(PropertyName = "xyGraphs")]
     public List<XYGraphBE> XYGraphs { get; set; }
+
+    [JsonProperty(PropertyName = "newSheets")]
+    public List<NewSheetBE> NewSheets { get; set; }
 }
 
 public class AngleConversionBE
@@ -183,3 +186,15 @@ public class CalcFinalErrorDeltaBE
 
 }
 #endregion
+
+public class NewSheetBE
+{
+    [JsonProperty(PropertyName = "newSheetName")]
+    public string NewSheetName { get; set; }
+
+    [JsonProperty(PropertyName = "insertAfterSheetName")]
+    public string InsertAfterSheetName { get; set; }
+
+    [JsonProperty(PropertyName = "fromColumnNames")]
+    public List<string> FromColumnNames { get; set; }
+}

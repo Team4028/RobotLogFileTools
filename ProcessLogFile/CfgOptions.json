@@ -20,7 +20,7 @@
           "boundedDegrees": "RgtFollower:HeadingInDeg"
         }
       ],
-      "pathName": "Follower:PathName",
+      "pathNameColumnName": "Follower:PathName",
       "lineGraphs": [
         {
           "name": "Left Axis Velocity",
@@ -182,6 +182,22 @@
             "followerGains": "LeftFollower:Gains"
           },
           "calcAreaDelta": null
+        }
+      ],
+      "newSheets": [
+        {
+          "newSheetName": "Turn Data",
+          "insertAfterSheetName": "Robot Heading",
+          "fromColumnNames": [
+            "StartDeltaMS",
+            "LeftFollower:Heading",
+            "GyroNavX:RawYaw",
+            "Follower:HeadingErrorInDeg",
+            "Follower:TurnDirection",
+            "Follower:TurnChgType",
+            "LeftFollower:TurnAdj",
+            "RgtFollower:TurnAdj"
+          ]
         }
       ]
     },
