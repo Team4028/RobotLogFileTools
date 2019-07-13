@@ -64,6 +64,12 @@ namespace ProcessLogFile
             // resize column widths to fit header text
             dataWorksheet.UsedRange.Columns.AutoFit();
 
+            // create any new sheets to make analysis easier
+            foreach (NewSheetBE newSheet in graphSet.NewSheets)
+            {
+                BuildNewSheet(dataWorksheet, newSheet, columnNameIndex);
+            }
+
             string pathNameColumnName = graphSet.PathNameColumnName;
 
             // build a new line graph for each one in the selected graphset
@@ -79,11 +85,6 @@ namespace ProcessLogFile
                 BuildXYGraph(dataWorksheet, xyGraph, columnNameIndex, pathNameColumnName);
             }
 
-            // create any new sheets to make analysis easier
-            foreach (NewSheetBE newSheet in graphSet.NewSheets)
-            {
-                BuildNewSheet(dataWorksheet, newSheet, columnNameIndex);
-            }
 
             // save the workbook
             string xlsFileName = System.IO.Path.ChangeExtension(logFilePathName, @".xlsx");
@@ -205,7 +206,7 @@ namespace ProcessLogFile
                 missingColumnNames.Add(xAxisColumnName);
             }
 
-            // step 2: find the columns we want to target for the YAxis
+            // step 2.1: find the columns we want to target for the YAxis
             Dictionary<int, string> yAxisTargetColIdxs = new Dictionary<int, string>();
             foreach (string yAxisColumnName in lineGraphConfig.YAxis.FromColumnNames)
             {
@@ -216,6 +217,23 @@ namespace ProcessLogFile
                 else
                 {
                     missingColumnNames.Add(yAxisColumnName);
+                }
+            }
+
+            // step 2.2: find the columns we want to target for the YAxis
+            Dictionary<int, string> secondaryYAxisTargetColIdxs = new Dictionary<int, string>();
+            if (lineGraphConfig.SecondaryYAxis != null)
+            {
+                foreach (string yAxisColumnName in lineGraphConfig.SecondaryYAxis.FromColumnNames)
+                {
+                    if (columnNameIndex.TryGetValue(yAxisColumnName, out columnIdx))
+                    {
+                        secondaryYAxisTargetColIdxs.Add(columnIdx, yAxisColumnName);
+                    }
+                    else
+                    {
+                        missingColumnNames.Add(yAxisColumnName);
+                    }
                 }
             }
 
@@ -332,6 +350,30 @@ namespace ProcessLogFile
                         break;
                 }
                 
+                chartSeries.Name = seriesName;
+            }
+
+            foreach (var kvp in secondaryYAxisTargetColIdxs)
+            {
+                seriesName = dataWorksheet.Cells[0, kvp.Key].Text;
+                yAxisColumn = dataWorksheet.Cells[1, kvp.Key, lastRowIdx - 1, kvp.Key];
+
+                chartSeries = chart.SeriesCollection.Add();
+                chartSeries.XValues = $"={xAxisColumn.ToString()}"; // "Sheet1!$A2:$A200";
+                chartSeries.Values = yAxisColumn.ToString();  //"Sheet1!$H2:$H200";
+                chartSeries.AxisGroup = AxisGroup.Secondary;
+
+                switch (lineGraphConfig.ChartTypeOverride)
+                {
+                    case @"XYScatter":
+                        chartSeries.ChartType = ChartType.XYScatter;
+                        break;
+
+                    default:
+                        chartSeries.ChartType = ChartType.Line;
+                        break;
+                }
+
                 chartSeries.Name = seriesName;
             }
 
@@ -657,7 +699,9 @@ namespace ProcessLogFile
         private static void BuildNewSheet(IWorksheet dataWorksheet, NewSheetBE newSheetCfg, Dictionary<string, int> columnNameIndex)
         {
             // find sheet we are supposed to insert this one after
-            IWorksheet afterWorkSheet = dataWorksheet.Workbook.Worksheets[newSheetCfg.InsertAfterSheetName];
+            IWorksheet afterWorkSheet = !(string.IsNullOrEmpty(newSheetCfg.InsertAfterSheetName)) ?
+                                            dataWorksheet.Workbook.Worksheets[newSheetCfg.InsertAfterSheetName]
+                                            : dataWorksheet;
 
             // add a new empty worksheet
             IWorksheet newWorkSheet = dataWorksheet.Workbook.Worksheets.AddAfter(afterWorkSheet);
@@ -695,11 +739,11 @@ namespace ProcessLogFile
             newWorkSheet.UsedRange.Columns.AutoFit();
 
             // freeze 1st row (to make scrolling more user friendly)
-            dataWorksheet.WindowInfo.ScrollColumn = 0;
-            dataWorksheet.WindowInfo.SplitColumns = 0;
-            dataWorksheet.WindowInfo.ScrollRow = 0;
-            dataWorksheet.WindowInfo.SplitRows = 1;
-            dataWorksheet.WindowInfo.FreezePanes = true;
+            newWorkSheet.WindowInfo.ScrollColumn = 0;
+            newWorkSheet.WindowInfo.SplitColumns = 0;
+            newWorkSheet.WindowInfo.ScrollRow = 0;
+            newWorkSheet.WindowInfo.SplitRows = 1;
+            newWorkSheet.WindowInfo.FreezePanes = true;
         }
 
     }

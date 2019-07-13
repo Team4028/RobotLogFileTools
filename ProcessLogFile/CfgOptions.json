@@ -35,6 +35,12 @@
               "Chassis:LeftActVelInIPS"
             ]
           },
+          "secondaryYAxis": {
+            "axisTitle": "Mtr Output %",
+            "fromColumnNames": [
+              "Chassis:LeftMtrOutputPercent"
+            ]
+          },
           "gains": {
             "pidGains": "Chassis:LeftPIDGains",
             "controlMode": "Chassis:LeftControlMode",
@@ -57,6 +63,12 @@
             "fromColumnNames": [
               "RgtFollower:SegmentVel",
               "Chassis:RgtActVelInIPS"
+            ]
+          },
+          "secondaryYAxis": {
+            "axisTitle": "Mtr Output %",
+            "fromColumnNames": [
+              "Chassis:RgtMtrOutputPercent"
             ]
           },
           "gains": {
@@ -90,6 +102,24 @@
           }
         },
         {
+          "name": "Left Axis Position Err",
+          "xAxis": {
+            "axisTitle": "Elapsed Time (mSec)",
+            "fromColumnName": "StartDeltaMS"
+          },
+          "yAxis": {
+            "axisTitle": "Error (Inches)",
+            "fromColumnNames": [
+              "LeftFollower:PosErrInInches"
+            ]
+          },
+          "gains": {
+            "pidGains": "Chassis:LeftPIDGains",
+            "controlMode": "Chassis:LeftControlMode",
+            "followerGains": "LeftFollower:Gains"
+          }
+        },
+        {
           "name": "Right Axis Position",
           "xAxis": {
             "axisTitle": "Elapsed Time (mSec)",
@@ -100,6 +130,24 @@
             "fromColumnNames": [
               "RgtFollower:SegmentPos",
               "Chassis:RgtActPosInInches"
+            ]
+          },
+          "gains": {
+            "pidGains": "Chassis:RgtPIDGains",
+            "controlMode": "Chassis:RgtControlMode",
+            "followerGains": "RgtFollower:Gains"
+          }
+        },
+        {
+          "name": "Right Axis Position Err",
+          "xAxis": {
+            "axisTitle": "Elapsed Time (mSec)",
+            "fromColumnName": "StartDeltaMS"
+          },
+          "yAxis": {
+            "axisTitle": "Error (Inches)",
+            "fromColumnNames": [
+              "RgtFollower:PosErrInInches"
             ]
           },
           "gains": {
@@ -122,6 +170,25 @@
               "RgtFollower:HeadingInDeg"
             ],
             "yAxisValuesInReverseOrder": true
+          },
+          "gains": {
+            "pidGains": "Chassis:RgtPIDGains",
+            "controlMode": "Chassis:RgtControlMode",
+            "followerGains": "RgtFollower:Gains"
+          },
+          "calcAreaDelta": null
+        },
+        {
+          "name": "Heading Err",
+          "xAxis": {
+            "axisTitle": "Elapsed Time (mSec)",
+            "fromColumnName": "StartDeltaMS"
+          },
+          "yAxis": {
+            "axisTitle": "Heading Error (Degrees)",
+            "fromColumnNames": [
+              "Follower:HeadingErrorInDeg"
+            ]
           },
           "gains": {
             "pidGains": "Chassis:RgtPIDGains",
@@ -186,15 +253,43 @@
       ],
       "newSheets": [
         {
+          "newSheetName": "Left Drive",
+          "insertAfterSheetName": null,
+          "fromColumnNames": [
+            "StartDeltaMS",
+            "LeftFollower:SegmentVel",
+            "LeftFollower:PosErrInInches",
+            "LeftFollower:BaseMtrCmd",
+            "LeftFollower:TurnAdj",
+            "LeftFollower:FinalMtrCmd",
+            "Chassis:LeftMtrOutputPercent",
+            "Chassis:LeftActVelInIPS"
+          ]
+        },
+        {
+          "newSheetName": "Right Drive",
+          "insertAfterSheetName": "Left Drive",
+          "fromColumnNames": [
+            "StartDeltaMS",
+            "RgtFollower:SegmentVel",
+            "RgtFollower:PosErrInInches",
+            "RgtFollower:BaseMtrCmd",
+            "RgtFollower:TurnAdj",
+            "RgtFollower:FinalMtrCmd",
+            "Chassis:RgtMtrOutputPercent",
+            "Chassis:RgtActVelInIPS"
+          ]
+        },
+        {
           "newSheetName": "Turn Data",
-          "insertAfterSheetName": "Robot Heading",
+          "insertAfterSheetName": "Right Drive",
           "fromColumnNames": [
             "StartDeltaMS",
             "LeftFollower:Heading",
             "GyroNavX:RawYaw",
             "Follower:HeadingErrorInDeg",
             "Follower:TurnDirection",
-            "Follower:TurnChgType",
+            "Follower:TurnCmdChg",
             "LeftFollower:TurnAdj",
             "RgtFollower:TurnAdj"
           ]

@@ -81,6 +81,9 @@ public class LineGraphBE
     [JsonProperty(PropertyName = "yAxis")]
     public YAxisBE YAxis { get; set; }
 
+    [JsonProperty(PropertyName = "secondaryYAxis")]
+    public YAxisBE SecondaryYAxis { get; set; }
+
     [JsonProperty(PropertyName = "chartTypeOverride")]
     public string ChartTypeOverride  { get; set; }
 
