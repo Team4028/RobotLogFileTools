@@ -258,12 +258,18 @@
           "fromColumnNames": [
             "StartDeltaMS",
             "LeftFollower:SegmentVel",
+            "Chassis:LeftActVelInIPS",
             "LeftFollower:PosErrInInches",
-            "LeftFollower:BaseMtrCmd",
+            "LeftFollower:PCmd",
+            "LeftFollower:DCmd",
+            "LeftFollower:VCmd",
+            "LeftFollower:ACmd",
+            "LeftFollower:RawBaseMtrCmd",
+            "LeftFollower:AdjBaseMtrCmd",
             "LeftFollower:TurnAdj",
-            "LeftFollower:FinalMtrCmd",
-            "Chassis:LeftMtrOutputPercent",
-            "Chassis:LeftActVelInIPS"
+            "LeftFollower:RawFinalMtrCmd",
+            "LeftFollower:ScaledFinalMtrCmd",
+            "Chassis:LeftMtrOutputPercent"
           ]
         },
         {
@@ -272,12 +278,18 @@
           "fromColumnNames": [
             "StartDeltaMS",
             "RgtFollower:SegmentVel",
+            "Chassis:RgtActVelInIPS",
             "RgtFollower:PosErrInInches",
-            "RgtFollower:BaseMtrCmd",
+            "RgtFollower:PCmd",
+            "RgtFollower:DCmd",
+            "RgtFollower:VCmd",
+            "RgtFollower:ACmd",
+            "RgtFollower:RawBaseMtrCmd",
+            "RgtFollower:AdjBaseMtrCmd",
             "RgtFollower:TurnAdj",
-            "RgtFollower:FinalMtrCmd",
-            "Chassis:RgtMtrOutputPercent",
-            "Chassis:RgtActVelInIPS"
+            "RgtFollower:RawFinalMtrCmd",
+            "RgtFollower:ScaledFinalMtrCmd",
+            "Chassis:RgtMtrOutputPercent"
           ]
         },
         {
@@ -291,7 +303,9 @@
             "Follower:TurnDirection",
             "Follower:TurnCmdChg",
             "LeftFollower:TurnAdj",
-            "RgtFollower:TurnAdj"
+            "LeftFollower:FinalMtrCmd",
+            "RgtFollower:TurnAdj",
+            "RgtFollower:FinalMtrCmd"
           ]
         }
       ]
