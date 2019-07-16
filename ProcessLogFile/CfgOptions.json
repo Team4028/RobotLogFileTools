@@ -251,6 +251,54 @@
           "calcAreaDelta": null
         }
       ],
+      "barGraphs": [
+        {
+          "name": "Left Axis Gains",
+          "xAxis": {
+            "axisTitle": "Elapsed Time (mSec)",
+            "fromColumnName": "StartDeltaMS"
+          },
+          "yAxis": {
+            "axisTitle": "Velocity (IPS)",
+            "fromColumnNames": [
+              "LeftFollower:VCmd",
+              "LeftFollower:ACmd",
+              "LeftFollower:PCmd",
+              "LeftFollower:DCmd",
+              "LeftFollower:TurnAdj"
+            ]
+          },
+          "chartTypeOverride": "StackedBar",
+          "gains": {
+            "pidGains": "Chassis:LeftPIDGains",
+            "controlMode": "Chassis:LeftControlMode",
+            "followerGains": "LeftFollower:Gains"
+          }
+        },
+        {
+          "name": "Right Axis Gains",
+          "xAxis": {
+            "axisTitle": "Elapsed Time (mSec)",
+            "fromColumnName": "StartDeltaMS"
+          },
+          "yAxis": {
+            "axisTitle": "Velocity (IPS)",
+            "fromColumnNames": [
+              "RgtFollower:VCmd",
+              "RgtFollower:ACmd",
+              "RgtFollower:PCmd",
+              "RgtFollower:DCmd",
+              "RgtFollower:TurnAdj"
+            ]
+          },
+          "chartTypeOverride": "StackedBar",
+          "gains": {
+            "pidGains": "Chassis:RgtPIDGains",
+            "controlMode": "ChassisRgtControlMode",
+            "followerGains": "RgtFollower:Gains"
+          }
+        }
+      ],
       "newSheets": [
         {
           "newSheetName": "Left Drive",

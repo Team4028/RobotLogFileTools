@@ -85,6 +85,10 @@ namespace ProcessLogFile
                 BuildXYGraph(dataWorksheet, xyGraph, columnNameIndex, pathNameColumnName);
             }
 
+            foreach (BarGraphBE barGraph in graphSet.BarGraphs)
+            {
+                BuildBarGraph(dataWorksheet, barGraph, columnNameIndex, pathNameColumnName);
+            }
 
             // save the workbook
             string xlsFileName = System.IO.Path.ChangeExtension(logFilePathName, @".xlsx");
@@ -601,6 +605,183 @@ namespace ProcessLogFile
 
             IAxisTitle yAxisTitle = yAxis.AxisTitle;
             yAxisTitle.Text = xyGraphConfig.YAxisTitle;
+        }
+
+        private static void BuildBarGraph(IWorksheet dataWorksheet, BarGraphBE barGraphConfig, Dictionary<string, int> columnNameIndex, string pathNameColumnName)
+        {
+            SpreadsheetGear.IWorkbook workbook = dataWorksheet.Workbook;
+            int columnIdx = -1;
+            int xAxisTargetColumnIdx = -1;
+            string xAxisColumnName = barGraphConfig.XAxis.FromColumnName;
+            List<string> missingColumnNames = new List<string>();
+
+            // step 1: find the column we want to target for the XAxis
+            if (!columnNameIndex.TryGetValue(xAxisColumnName, out xAxisTargetColumnIdx))
+            {
+                missingColumnNames.Add(xAxisColumnName);
+            }
+
+            // step 2.1: find the columns we want to target for the YAxis
+            Dictionary<int, string> yAxisTargetColIdxs = new Dictionary<int, string>();
+            foreach (string yAxisColumnName in barGraphConfig.YAxis.FromColumnNames)
+            {
+                if (columnNameIndex.TryGetValue(yAxisColumnName, out columnIdx))
+                {
+                    yAxisTargetColIdxs.Add(columnIdx, yAxisColumnName);
+                }
+                else
+                {
+                    missingColumnNames.Add(yAxisColumnName);
+                }
+            }
+
+            // step 3: find the columns we want to reference for the Gains
+            string pidGainsColumnName = barGraphConfig.Gains?.PIDGains;
+            string followerGainsColumnName = barGraphConfig.Gains?.FollowerGains;
+            string controlModeColumnName = barGraphConfig.Gains?.ControlMode;
+
+            int pidGainsColumnIdx = -1;
+            int followerGainsColumnIdx = -1;
+            int controlModeColumnIdx = -1;
+            int elapsedDeltaColumnIdx = -1;
+            int targetColumnIdx = -1;
+            int actualColumnIdx = -1;
+            int pathNameColumnIdx = -1;
+
+            if (!string.IsNullOrEmpty(pidGainsColumnName))
+            {
+                if (!columnNameIndex.TryGetValue(pidGainsColumnName, out pidGainsColumnIdx))
+                {
+                    //missingColumnNames.Add(pidGainsColumnName);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(followerGainsColumnName))
+            {
+                if (!columnNameIndex.TryGetValue(followerGainsColumnName, out followerGainsColumnIdx))
+                {
+                    missingColumnNames.Add(followerGainsColumnName);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(controlModeColumnName))
+            {
+                if (!columnNameIndex.TryGetValue(controlModeColumnName, out controlModeColumnIdx))
+                {
+                    //missingColumnNames.Add(controlModeColumnName);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(barGraphConfig.XAxis.FromColumnName))
+            {
+                if (!columnNameIndex.TryGetValue(barGraphConfig.XAxis.FromColumnName, out elapsedDeltaColumnIdx))
+                {
+                    missingColumnNames.Add(barGraphConfig.XAxis.FromColumnName);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(pathNameColumnName))
+            {
+                if (!columnNameIndex.TryGetValue(pathNameColumnName, out pathNameColumnIdx))
+                {
+                    missingColumnNames.Add(pathNameColumnName);
+                }
+            }
+
+            //
+            // stop if any were missing
+            if (missingColumnNames.Count > 0)
+            {
+                string errList = String.Join(",", missingColumnNames);
+                throw new ApplicationException($"... Error building graph: [{barGraphConfig.Name}], Expected cols: [{errList}] cannot be found!");
+            }
+
+            // Step 4: add a new worksheet to hold the chart
+            IWorksheet chartSheet = workbook.Worksheets.Add();
+            chartSheet.Name = barGraphConfig.Name;
+
+            // Step 5.1: time to build the chart
+            SpreadsheetGear.Shapes.IShape chartShape = chartSheet.Shapes.AddChart(1, 1, 500, 500);
+            SpreadsheetGear.Charts.IChart chart = chartShape.Chart;
+
+            // working variables
+            int lastRowIdx = dataWorksheet.UsedRange.RowCount;
+            IRange xAxisColumn = dataWorksheet.Cells[1, 0, lastRowIdx - 1, 0];
+            IRange yAxisColumn = null;
+            ISeries chartSeries = null;
+            string seriesName = string.Empty;
+
+            // Step 5.2: add a chart series for each Y axis column in the config
+            foreach (var kvp in yAxisTargetColIdxs)
+            {
+                seriesName = dataWorksheet.Cells[0, kvp.Key].Text;
+                yAxisColumn = dataWorksheet.Cells[1, kvp.Key, lastRowIdx - 1, kvp.Key];
+
+                chartSeries = chart.SeriesCollection.Add();
+                chartSeries.XValues = $"={xAxisColumn.ToString()}"; // "Sheet1!$A2:$A200";
+                chartSeries.Values = yAxisColumn.ToString();  //"Sheet1!$H2:$H200";
+
+                switch (barGraphConfig.ChartTypeOverride)
+                {
+                    case @"StackedBar":
+                        chartSeries.ChartType = ChartType.ColumnStacked;
+                        break;
+
+                    default:
+                        chartSeries.ChartType = ChartType.ColumnClustered;
+                        break;
+                }
+
+                chartSeries.Name = seriesName;
+            }
+
+            // Step 5.3: format the chart title
+            chart.HasTitle = true;
+            StringBuilder chartTitle = new StringBuilder();
+            string pathName = dataWorksheet.Cells[1, pathNameColumnIdx].Text;
+            chartTitle.AppendLine($"{barGraphConfig.Name} | Path: [{pathName}]");
+            // optional add follower gains only if available
+            if (pidGainsColumnIdx >= 0)
+            {
+                chartTitle.AppendLine($"PID Gains: {GetPIDGains(dataWorksheet, pidGainsColumnIdx, controlModeColumnIdx)}");
+            }
+            // optional add follower gains only if available
+            if (followerGainsColumnIdx >= 0)
+            {
+                chartTitle.AppendLine($"Follower Gains: {dataWorksheet.Cells[1, followerGainsColumnIdx].Text}");
+            }
+
+            chart.ChartTitle.Text = chartTitle.ToString();
+            chart.ChartTitle.Font.Size = 12;
+
+            // Step 5.4: format the chart legend
+            chart.Legend.Position = SpreadsheetGear.Charts.LegendPosition.Bottom;
+            chart.Legend.Font.Bold = true;
+
+            // Step 5.5: format X & Y Axes
+            IAxis xAxis = chart.Axes[AxisType.Category];
+            xAxis.HasMinorGridlines = true;
+            xAxis.HasTitle = true;
+            if (chart.ChartType == ChartType.Line)
+            {
+                // this option not valid on xy graphs
+                xAxis.TickMarkSpacing = 100;    // 10Msec per step * 100 = gidline every second
+            }
+            IAxisTitle xAxisTitle = xAxis.AxisTitle;
+            xAxisTitle.Text = barGraphConfig.XAxis.AxisTitle;
+
+            IAxis yAxis = chart.Axes[AxisType.Value, AxisGroup.Primary];
+            yAxis.HasTitle = true;
+            yAxis.TickLabels.NumberFormat = "General";
+            yAxis.ReversePlotOrder = barGraphConfig.YAxis.IsYAxisValuesInReverseOrder;
+
+            if (barGraphConfig.YAxis.MajorUnitOverride.HasValue)
+            {
+                yAxis.MajorUnit = (double)barGraphConfig.YAxis.MajorUnitOverride.Value;
+            }
+
+            IAxisTitle yAxisTitle = yAxis.AxisTitle;
+            yAxisTitle.Text = barGraphConfig.YAxis.AxisTitle;
         }
 
         /// <summary>

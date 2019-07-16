@@ -57,6 +57,9 @@ public class GraphSetBE
     [JsonProperty(PropertyName = "xyGraphs")]
     public List<XYGraphBE> XYGraphs { get; set; }
 
+    [JsonProperty(PropertyName = "barGraphs")]
+    public List<BarGraphBE> BarGraphs { get; set; }
+
     [JsonProperty(PropertyName = "newSheets")]
     public List<NewSheetBE> NewSheets { get; set; }
 }
@@ -70,6 +73,8 @@ public class AngleConversionBE
     public string BoundedDegrees { get; set; }
 }
 
+
+#region ==== Line Graphs =====
 public class LineGraphBE
 {
     [JsonProperty(PropertyName = "name")]
@@ -97,7 +102,6 @@ public class LineGraphBE
     public CalcAreaDeltaBE CalcAreaDelta { get; set; }
 }
 
-#region ==== Line Graphs =====
 public class XAxisBE
 {
     [JsonProperty(PropertyName = "axisTitle")]
@@ -188,6 +192,28 @@ public class CalcFinalErrorDeltaBE
 {
 
 }
+#endregion
+
+#region Bar Graphs
+
+public class BarGraphBE
+{
+    [JsonProperty(PropertyName = "name")]
+    public string Name { get; set; }
+
+    [JsonProperty(PropertyName = "xAxis")]
+    public XAxisBE XAxis { get; set; }
+
+    [JsonProperty(PropertyName = "yAxis")]
+    public YAxisBE YAxis { get; set; }
+
+    [JsonProperty(PropertyName = "chartTypeOverride")]
+    public string ChartTypeOverride { get; set; }
+
+    [JsonProperty(PropertyName = "gains")]
+    public GainsBE Gains { get; set; }
+}
+
 #endregion
 
 public class NewSheetBE

@@ -2,7 +2,7 @@
   "profiles": {
     "ProcessLogFile": {
       "commandName": "Project",
-      "commandLineArgs": "-d -g MP"
+      "commandLineArgs": " -f 20190715_173224_599_Auton.tsv"
     }
   }
 }
