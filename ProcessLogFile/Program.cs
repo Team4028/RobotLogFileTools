@@ -42,8 +42,12 @@ namespace ProcessLogFile
                 Parser.Default.ParseArguments<CmdLineOptionsBE>(args)
                         .WithParsed<CmdLineOptionsBE>(o =>
                         {
+                            if (string.IsNullOrEmpty(o.GraphSetName))
+                                {
+                                    throw new ApplicationException($"You must supply a graph set name!");
+                                }
                             // the file will be pulled from roborio using SFTP
-                            if (o.IsPullLatestFromRoboRIO)
+                            else if (o.IsPullLatestFromRoboRIO)
                             {
                                 if (!IsServerAvailable(config.RoboRio.Ipv4Address, 22))
                                 {

@@ -259,7 +259,7 @@
             "fromColumnName": "StartDeltaMS"
           },
           "yAxis": {
-            "axisTitle": "Velocity (IPS)",
+            "axisTitle": "Motor Output (%VBus)",
             "fromColumnNames": [
               "LeftFollower:VCmd",
               "LeftFollower:ACmd",
@@ -282,7 +282,7 @@
             "fromColumnName": "StartDeltaMS"
           },
           "yAxis": {
-            "axisTitle": "Velocity (IPS)",
+            "axisTitle": "Motor Output (%VBus)",
             "fromColumnNames": [
               "RgtFollower:VCmd",
               "RgtFollower:ACmd",
@@ -306,6 +306,7 @@
           "fromColumnNames": [
             "StartDeltaMS",
             "LeftFollower:SegmentVel",
+            "LeftFollower:SegmentAccel",
             "Chassis:LeftActVelInIPS",
             "LeftFollower:PosErrInInches",
             "LeftFollower:PCmd",
@@ -326,6 +327,7 @@
           "fromColumnNames": [
             "StartDeltaMS",
             "RgtFollower:SegmentVel",
+            "RgtFollower:SegmentAccel",
             "Chassis:RgtActVelInIPS",
             "RgtFollower:PosErrInInches",
             "RgtFollower:PCmd",
