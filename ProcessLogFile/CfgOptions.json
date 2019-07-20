@@ -23,7 +23,7 @@
       "pathNameColumnName": "Follower:PathName",
       "lineGraphs": [
         {
-          "name": "Left Axis Velocity",
+          "name": "Left Motor Velocity",
           "xAxis": {
             "axisTitle": "Elapsed Time (mSec)",
             "fromColumnName": "StartDeltaMS"
@@ -53,7 +53,26 @@
           }
         },
         {
-          "name": "Right Axis Velocity",
+          "name": "Left Motor Voltage",
+          "xAxis": {
+            "axisTitle": "Elapsed Time (mSec)",
+            "fromColumnName": "StartDeltaMS"
+          },
+          "yAxis": {
+            "axisTitle": "Voltage",
+            "fromColumnNames": [
+              "Chassis:LeftBusVoltage",
+              "Chassis:LeftMotorVoltage"
+            ]
+          },
+          "gains": {
+            "pidGains": "Chassis:LeftPIDGains",
+            "controlMode": "Chassis:LeftControlMode",
+            "followerGains": "LeftFollower:Gains"
+          }
+        },
+        {
+          "name": "Right Motor Velocity",
           "xAxis": {
             "axisTitle": "Elapsed Time (mSec)",
             "fromColumnName": "StartDeltaMS"
@@ -83,7 +102,26 @@
           }
         },
         {
-          "name": "Left Axis Position",
+          "name": "Right Motor Voltage",
+          "xAxis": {
+            "axisTitle": "Elapsed Time (mSec)",
+            "fromColumnName": "StartDeltaMS"
+          },
+          "yAxis": {
+            "axisTitle": "Voltage",
+            "fromColumnNames": [
+              "Chassis:RgtBusVoltage",
+              "Chassis:RgtMotorVoltage"
+            ]
+          },
+          "gains": {
+            "pidGains": "Chassis:LeftPIDGains",
+            "controlMode": "Chassis:LeftControlMode",
+            "followerGains": "RgtFollower:Gains"
+          }
+        },
+        {
+          "name": "Left Side Position",
           "xAxis": {
             "axisTitle": "Elapsed Time (mSec)",
             "fromColumnName": "StartDeltaMS"
@@ -102,7 +140,7 @@
           }
         },
         {
-          "name": "Left Axis Position Err",
+          "name": "Left Side Position Err",
           "xAxis": {
             "axisTitle": "Elapsed Time (mSec)",
             "fromColumnName": "StartDeltaMS"
@@ -120,7 +158,7 @@
           }
         },
         {
-          "name": "Right Axis Position",
+          "name": "Right Side Position",
           "xAxis": {
             "axisTitle": "Elapsed Time (mSec)",
             "fromColumnName": "StartDeltaMS"
@@ -139,7 +177,7 @@
           }
         },
         {
-          "name": "Right Axis Position Err",
+          "name": "Right Side Position Err",
           "xAxis": {
             "axisTitle": "Elapsed Time (mSec)",
             "fromColumnName": "StartDeltaMS"
@@ -253,7 +291,7 @@
       ],
       "barGraphs": [
         {
-          "name": "Left Axis Gains",
+          "name": "Left Motor Gains",
           "xAxis": {
             "axisTitle": "Elapsed Time (mSec)",
             "fromColumnName": "StartDeltaMS"
@@ -276,7 +314,7 @@
           }
         },
         {
-          "name": "Right Axis Gains",
+          "name": "Right Motor Gains",
           "xAxis": {
             "axisTitle": "Elapsed Time (mSec)",
             "fromColumnName": "StartDeltaMS"
@@ -356,6 +394,439 @@
             "LeftFollower:FinalMtrCmd",
             "RgtFollower:TurnAdj",
             "RgtFollower:FinalMtrCmd"
+          ]
+        }
+      ]
+    },
+    {
+      "setName": "mp2",
+      "angleConversions": [
+        {
+          "radians": "LeftFollower:Heading",
+          "boundedDegrees": "LeftFollower:HeadingInDeg"
+        },
+        {
+          "radians": "RgtFollower:Heading",
+          "boundedDegrees": "RgtFollower:HeadingInDeg"
+        }
+      ],
+      "pathNameColumnName": "Follower:PathName",
+      "lineGraphs": [
+        {
+          "name": "Left Motor Velocity",
+          "xAxis": {
+            "axisTitle": "Elapsed Time (mSec)",
+            "fromColumnName": "StartDeltaMS"
+          },
+          "yAxis": {
+            "axisTitle": "Velocity (IPS)",
+            "fromColumnNames": [
+              "LeftFollower:SegmentVel",
+              "Chassis:LeftActVelInIPS"
+            ]
+          },
+          "secondaryYAxis": {
+            "axisTitle": "Mtr Output %",
+            "fromColumnNames": [
+              "Chassis:LeftMtrOutputPercent"
+            ]
+          },
+          "gains": {
+            "pidGains": "Chassis:LeftPIDGains",
+            "controlMode": "Chassis:LeftControlMode",
+            "followerGains": "LeftFollower:Gains"
+          },
+          "calcAreaDelta": {
+            "elaspedTime": "StartDeltaMS",
+            "target": "LeftFollower:SegmentVel",
+            "actual": "Chassis:LeftActVelInIPS"
+          }
+        },
+        {
+          "name": "Left Motor Voltage",
+          "xAxis": {
+            "axisTitle": "Elapsed Time (mSec)",
+            "fromColumnName": "StartDeltaMS"
+          },
+          "yAxis": {
+            "axisTitle": "Voltage",
+            "fromColumnNames": [
+              "Chassis:LeftBusVoltage",
+              "Chassis:LeftMotorVoltage"
+            ]
+          },
+          "gains": {
+            "pidGains": "Chassis:LeftPIDGains",
+            "controlMode": "Chassis:LeftControlMode",
+            "followerGains": "LeftFollower:Gains"
+          }
+        },
+        {
+          "name": "Right Motor Velocity",
+          "xAxis": {
+            "axisTitle": "Elapsed Time (mSec)",
+            "fromColumnName": "StartDeltaMS"
+          },
+          "yAxis": {
+            "axisTitle": "Velocity (IPS)",
+            "fromColumnNames": [
+              "RgtFollower:SegmentVel",
+              "Chassis:RgtActVelInIPS"
+            ]
+          },
+          "secondaryYAxis": {
+            "axisTitle": "Mtr Output %",
+            "fromColumnNames": [
+              "Chassis:RgtMtrOutputPercent"
+            ]
+          },
+          "gains": {
+            "pidGains": "Chassis:RgtPIDGains",
+            "controlMode": "Chassis:RgtControlMode",
+            "followerGains": "RgtFollower:Gains"
+          },
+          "calcAreaDelta": {
+            "elaspedTime": "StartDeltaMS",
+            "target": "RgtFollower:SegmentVel",
+            "actual": "Chassis:RgtActVelInIPS"
+          }
+        },
+        {
+          "name": "Right Motor Voltage",
+          "xAxis": {
+            "axisTitle": "Elapsed Time (mSec)",
+            "fromColumnName": "StartDeltaMS"
+          },
+          "yAxis": {
+            "axisTitle": "Voltage",
+            "fromColumnNames": [
+              "Chassis:RgtBusVoltage",
+              "Chassis:RgtMotorVoltage"
+            ]
+          },
+          "gains": {
+            "pidGains": "Chassis:LeftPIDGains",
+            "controlMode": "Chassis:LeftControlMode",
+            "followerGains": "RgtFollower:Gains"
+          }
+        },
+        {
+          "name": "Left Side Position",
+          "xAxis": {
+            "axisTitle": "Elapsed Time (mSec)",
+            "fromColumnName": "StartDeltaMS"
+          },
+          "yAxis": {
+            "axisTitle": "Position (Inches)",
+            "fromColumnNames": [
+              "LeftFollower:SegmentPos",
+              "Chassis:LeftActPosInInches"
+            ]
+          },
+          "gains": {
+            "pidGains": "Chassis:LeftPIDGains",
+            "controlMode": "Chassis:LeftControlMode",
+            "followerGains": "LeftFollower:Gains"
+          }
+        },
+        {
+          "name": "Left Side Position Err",
+          "xAxis": {
+            "axisTitle": "Elapsed Time (mSec)",
+            "fromColumnName": "StartDeltaMS"
+          },
+          "yAxis": {
+            "axisTitle": "Error (Inches)",
+            "fromColumnNames": [
+              "LeftFollower:PosErrInInches"
+            ]
+          },
+          "gains": {
+            "pidGains": "Chassis:LeftPIDGains",
+            "controlMode": "Chassis:LeftControlMode",
+            "followerGains": "LeftFollower:Gains"
+          }
+        },
+        {
+          "name": "Left Side Velocity Err",
+          "xAxis": {
+            "axisTitle": "Elapsed Time (mSec)",
+            "fromColumnName": "StartDeltaMS"
+          },
+          "yAxis": {
+            "axisTitle": "Error (IPS)",
+            "fromColumnNames": [
+              "LeftFollower:VelErrInIPS"
+            ]
+          },
+          "gains": {
+            "pidGains": "Chassis:LeftPIDGains",
+            "controlMode": "Chassis:LeftControlMode",
+            "followerGains": "LeftFollower:Gains"
+          }
+        },
+        {
+          "name": "Right Side Position",
+          "xAxis": {
+            "axisTitle": "Elapsed Time (mSec)",
+            "fromColumnName": "StartDeltaMS"
+          },
+          "yAxis": {
+            "axisTitle": "Position (Inches)",
+            "fromColumnNames": [
+              "RgtFollower:SegmentPos",
+              "Chassis:RgtActPosInInches"
+            ]
+          },
+          "gains": {
+            "pidGains": "Chassis:RgtPIDGains",
+            "controlMode": "Chassis:RgtControlMode",
+            "followerGains": "RgtFollower:Gains"
+          }
+        },
+        {
+          "name": "Right Side Position Err",
+          "xAxis": {
+            "axisTitle": "Elapsed Time (mSec)",
+            "fromColumnName": "StartDeltaMS"
+          },
+          "yAxis": {
+            "axisTitle": "Error (Inches)",
+            "fromColumnNames": [
+              "RgtFollower:PosErrInInches"
+            ]
+          },
+          "gains": {
+            "pidGains": "Chassis:RgtPIDGains",
+            "controlMode": "Chassis:RgtControlMode",
+            "followerGains": "RgtFollower:Gains"
+          }
+        },
+        {
+          "name": "Right Side Velocity Err",
+          "xAxis": {
+            "axisTitle": "Elapsed Time (mSec)",
+            "fromColumnName": "StartDeltaMS"
+          },
+          "yAxis": {
+            "axisTitle": "Error (IPS)",
+            "fromColumnNames": [
+              "RgtFollower:VelErrInIPS"
+            ]
+          },
+          "gains": {
+            "pidGains": "Chassis:RgtPIDGains",
+            "controlMode": "Chassis:RgtControlMode",
+            "followerGains": "RgtFollower:Gains"
+          }
+        },
+        {
+          "name": "Robot Heading",
+          "xAxis": {
+            "axisTitle": "Elapsed Time (mSec)",
+            "fromColumnName": "StartDeltaMS"
+          },
+          "yAxis": {
+            "axisTitle": "Heading (Degrees)",
+            "fromColumnNames": [
+              "GyroNavX:RawYaw",
+              "LeftFollower:HeadingInDeg",
+              "RgtFollower:HeadingInDeg"
+            ],
+            "yAxisValuesInReverseOrder": true
+          },
+          "gains": {
+            "pidGains": "Chassis:RgtPIDGains",
+            "controlMode": "Chassis:RgtControlMode",
+            "followerGains": "RgtFollower:Gains"
+          },
+          "calcAreaDelta": null
+        },
+        {
+          "name": "Heading Err",
+          "xAxis": {
+            "axisTitle": "Elapsed Time (mSec)",
+            "fromColumnName": "StartDeltaMS"
+          },
+          "yAxis": {
+            "axisTitle": "Heading Error (Degrees)",
+            "fromColumnNames": [
+              "Follower:HeadingErrorInDeg"
+            ]
+          },
+          "gains": {
+            "pidGains": "Chassis:RgtPIDGains",
+            "controlMode": "Chassis:RgtControlMode",
+            "followerGains": "RgtFollower:Gains"
+          },
+          "calcAreaDelta": null
+        },
+        {
+          "name": "Scan Times",
+          "xAxis": {
+            "axisTitle": "Elapsed Time (mSec)",
+            "fromColumnName": "StartDeltaMS"
+          },
+          "yAxis": {
+            "axisTitle": "Scan Time (mSec)",
+            "fromColumnNames": [
+              "LastScanDeltaMS"
+            ],
+            "majorUnitOverride": "1.0"
+          },
+          "chartTypeOverride": "XYScatter",
+          "gains": null,
+          "calcAreaDelta": null
+        }
+      ],
+      "xyGraphs": [
+        {
+          "name": "Overall Path Following",
+          "series": [
+            {
+              "name": "Left Target",
+              "xAxisCoumnName": "LeftFollower:PoseX",
+              "yAxisColumnName": "LeftFollower:PoseY"
+            },
+            {
+              "name": "Right Target",
+              "xAxisCoumnName": "RgtFollower:PoseX",
+              "yAxisColumnName": "RgtFollower:PoseY"
+            },
+            {
+              "name": "Left Actual",
+              "xAxisCoumnName": "Chassis:LeftPoseX",
+              "yAxisColumnName": "Chassis:LeftPoseY"
+            },
+            {
+              "name": "Right Actual",
+              "xAxisCoumnName": "Chassis:RgtPoseX",
+              "yAxisColumnName": "Chassis:RgtPoseY"
+            }
+          ],
+          "xAxisTitle": "X Position (inches)",
+          "yAxisTitle": "Y Position (inches)",
+          "yAxisValuesInReverseOrder": true,
+          "gains": {
+            "pidGains": "Chassis:LeftPIDGains",
+            "controlMode": "Chassis:LeftControlMode",
+            "followerGains": "LeftFollower:Gains"
+          },
+          "calcAreaDelta": null
+        }
+      ],
+      "barGraphs": [
+        {
+          "name": "Left Motor Gains",
+          "xAxis": {
+            "axisTitle": "Elapsed Time (mSec)",
+            "fromColumnName": "StartDeltaMS"
+          },
+          "yAxis": {
+            "axisTitle": "Motor Output (%VBus)",
+            "fromColumnNames": [
+              "LeftFollower:PPosCmd",
+              "LeftFollower:PVelCmd",
+              "LeftFollower:IPosCmd",
+              "LeftFollower:FFVelCmd",
+              "LeftFollower:FFAccelCmd",
+              "LeftFollower:VInterceptCmd",
+              "LeftFollower:TurnAdj"
+            ]
+          },
+          "chartTypeOverride": "StackedBar",
+          "gains": {
+            "pidGains": "Chassis:LeftPIDGains",
+            "controlMode": "Chassis:LeftControlMode",
+            "followerGains": "LeftFollower:Gains"
+          }
+        },
+        {
+          "name": "Right Motor Gains",
+          "xAxis": {
+            "axisTitle": "Elapsed Time (mSec)",
+            "fromColumnName": "StartDeltaMS"
+          },
+          "yAxis": {
+            "axisTitle": "Motor Output (%VBus)",
+            "fromColumnNames": [
+              "RgtFollower:PPosCmd",
+              "RgtFollower:PVelCmd",
+              "RgtFollower:IPosCmd",
+              "RgtFollower:FFVelCmd",
+              "RgtFollower:FFAccelCmd",
+              "RgtFollower:VInterceptCmd",
+              "RgtFollower:TurnAdj"
+            ]
+          },
+          "chartTypeOverride": "StackedBar",
+          "gains": {
+            "pidGains": "Chassis:RgtPIDGains",
+            "controlMode": "ChassisRgtControlMode",
+            "followerGains": "RgtFollower:Gains"
+          }
+        }
+      ],
+      "newSheets": [
+        {
+          "newSheetName": "Left Drive",
+          "insertAfterSheetName": null,
+          "fromColumnNames": [
+            "StartDeltaMS",
+            "LeftFollower:SegmentVel",
+            "LeftFollower:SegmentAccel",
+            "Chassis:LeftActVelInIPS",
+            "LeftFollower:PosErrInInches",
+            "LeftFollower:VelErrInIPS",
+            "LeftFollower:PPosCmd",
+            "LeftFollower:PVelCmd",
+            "LeftFollower:IPosCmd",
+            "LeftFollower:FFVelCmd",
+            "LeftFollower:FFAccelCmd",
+            "LeftFollower:RawBaseMtrCmd",
+            "LeftFollower:VInterceptCmd",
+            "LeftFollower:AdjBaseMtrCmd",
+            "LeftFollower:RawFinalMtrCmd",
+            "LeftFollower:ScaledFinalMtrCmd",
+            "Chassis:LeftMtrOutputPercent"
+          ]
+        },
+        {
+          "newSheetName": "Right Drive",
+          "insertAfterSheetName": "Left Drive",
+          "fromColumnNames": [
+            "StartDeltaMS",
+            "RgtFollower:SegmentVel",
+            "RgtFollower:SegmentAccel",
+            "Chassis:RgtActVelInIPS",
+            "RgtFollower:PosErrInInches",
+            "RgtFollower:VelErrInIPS",
+            "RgtFollower:PPosCmd",
+            "RgtFollower:PVelCmd",
+            "RgtFollower:IPosCmd",
+            "RgtFollower:FFVelCmd",
+            "RgtFollower:FFAccelCmd",
+            "RgtFollower:RawBaseMtrCmd",
+            "RgtFollower:VInterceptCmd",
+            "RgtFollower:AdjBaseMtrCmd",
+            "RgtFollower:TurnAdj",
+            "RgtFollower:RawFinalMtrCmd",
+            "RgtFollower:ScaledFinalMtrCmd",
+            "Chassis:RgtMtrOutputPercent"
+          ]
+        },
+        {
+          "newSheetName": "Turn Data",
+          "insertAfterSheetName": "Right Drive",
+          "fromColumnNames": [
+            "StartDeltaMS",
+            "LeftFollower:Heading",
+            "GyroNavX:RawYaw",
+            "Follower:HeadingErrorInDeg",
+            "Follower:TurnDirection",
+            "Follower:TurnCmdChg",
+            "LeftFollower:ScaledFinalMtrCmd",
+            "RgtFollower:ScaledFinalMtrCmd"
           ]
         }
       ]
