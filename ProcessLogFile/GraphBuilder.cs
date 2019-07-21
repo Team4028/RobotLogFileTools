@@ -25,24 +25,24 @@ namespace ProcessLogFile
 
             // import the csv file
             SpreadsheetGear.IWorkbook workbook = workbookSet.Workbooks.Open(logFilePathName);
-            
+
             // get a reference to the active (only) worksheet
             SpreadsheetGear.IWorksheet dataWorksheet = workbook.ActiveWorksheet;
             dataWorksheet.Name = System.IO.Path.GetFileNameWithoutExtension(logFilePathName);
 
-            // freeze 1st row (to make scrolling more user friendly)
+            // freeze 1st row & 1st column(to make scrolling more user friendly)
             dataWorksheet.WindowInfo.ScrollColumn = 0;
-            dataWorksheet.WindowInfo.SplitColumns = 0;
+            dataWorksheet.WindowInfo.SplitColumns = 1;
             dataWorksheet.WindowInfo.ScrollRow = 0;
             dataWorksheet.WindowInfo.SplitRows = 1;
             dataWorksheet.WindowInfo.FreezePanes = true;
 
             // build index of column names
-            var columnNameIndex = BuildColumnNameXref(dataWorksheet);
+            var columnNameXref = BuildColumnNameXref(dataWorksheet);
 
             // find the config for the requested Set of Graphs
             GraphSetBE graphSet = config.GraphSets.Where(gs => gs.SetName.ToLower() == graphSetName.ToLower()).FirstOrDefault();
-            if(graphSet == null)
+            if (graphSet == null)
             {
                 List<string> availableGraphSetNames = config.GraphSets.Select(gs => gs.SetName).ToList();
 
@@ -50,51 +50,74 @@ namespace ProcessLogFile
             }
 
             // do any required conversions on the source data (ex Radians to Degrees)
-            if(graphSet.AngleConversions != null)
+            if (graphSet.AngleConversions != null)
             {
-                foreach(AngleConversionBE angleConversion in graphSet.AngleConversions)
+                foreach (AngleConversionBE angleConversion in graphSet.AngleConversions)
                 {
-                    PerformAngleConversion(dataWorksheet, angleConversion, columnNameIndex);
+                    PerformAngleConversion(dataWorksheet, angleConversion, columnNameXref);
                 }
 
                 // rebuild column name index
-                columnNameIndex = BuildColumnNameXref(dataWorksheet);
+                columnNameXref = BuildColumnNameXref(dataWorksheet);
             }
 
             // resize column widths to fit header text
             dataWorksheet.UsedRange.Columns.AutoFit();
 
-            // create any new sheets to make analysis easier
+            // ====================================
+            // create any new sheets with a subset of the original columns to make analysis easier
+            // ====================================
             foreach (NewSheetBE newSheet in graphSet.NewSheets)
             {
-                BuildNewSheet(dataWorksheet, newSheet, columnNameIndex);
+                BuildNewSheet(dataWorksheet, newSheet, columnNameXref);
             }
 
             string pathNameColumnName = graphSet.PathNameColumnName;
 
+            // ====================================
             // build a new line graph for each one in the selected graphset
+            // ====================================
             foreach (LineGraphBE lineGraph in graphSet.LineGraphs)
             {
-                BuildLineGraph(dataWorksheet, lineGraph, columnNameIndex, pathNameColumnName);
+                BuildLineGraph(dataWorksheet, lineGraph, columnNameXref, pathNameColumnName);
             }
 
+            // ====================================
             // build a new XY graph for each one in the selected graphset
             // fyi: these were separated because they require slightly different config data structures
+            // ====================================
             foreach (XYGraphBE xyGraph in graphSet.XYGraphs)
             {
-                BuildXYGraph(dataWorksheet, xyGraph, columnNameIndex, pathNameColumnName);
+                BuildXYGraph(dataWorksheet, xyGraph, columnNameXref, pathNameColumnName);
             }
 
+            // ====================================
+            // build a new bar graph for each one in the selected graphset
+            // ====================================
             foreach (BarGraphBE barGraph in graphSet.BarGraphs)
             {
-                BuildBarGraph(dataWorksheet, barGraph, columnNameIndex, pathNameColumnName);
+                BuildBarGraph(dataWorksheet, barGraph, columnNameXref, pathNameColumnName);
+            }
+
+            // ====================================
+            // build a new histogram for each one in the selected graphset
+            // ====================================
+            foreach (HistogramBE histogram in graphSet.Histograms)
+            {
+                BuildHistogram(dataWorksheet, histogram, columnNameXref, pathNameColumnName);
             }
 
             // save the workbook
-            string xlsFileName = System.IO.Path.ChangeExtension(logFilePathName, @".xlsx");
-            workbook.SaveAs(xlsFileName, FileFormat.OpenXMLWorkbook);
+            string pathName = GetCellValue<string>(dataWorksheet, graphSet.PathNameColumnName, 1, columnNameXref);
 
-            return xlsFileName;
+            string folderPathName = System.IO.Path.GetDirectoryName(logFilePathName);
+            string fileName = System.IO.Path.GetFileNameWithoutExtension(logFilePathName);
+            fileName = (!string.IsNullOrEmpty(pathName)) ? $"{fileName}_{pathName}" : fileName;
+            fileName = System.IO.Path.ChangeExtension(fileName, @".xlsx");
+            string xlsFilePathName = System.IO.Path.Combine(folderPathName, fileName);
+            workbook.SaveAs(xlsFilePathName, FileFormat.OpenXMLWorkbook);
+
+            return xlsFilePathName;
         }
 
         /// <summary>
@@ -170,7 +193,7 @@ namespace ProcessLogFile
             int columnCount = usedColumns.ColumnCount;
             string columnName = string.Empty;
 
-            for(int colIndex = 0; colIndex <= columnCount-1; colIndex++)
+            for (int colIndex = 0; colIndex <= columnCount - 1; colIndex++)
             {
                 try
                 {
@@ -277,7 +300,7 @@ namespace ProcessLogFile
                     //missingColumnNames.Add(controlModeColumnName);
                 }
             }
-            
+
             if (!string.IsNullOrEmpty(lineGraphConfig.XAxis.FromColumnName))
             {
                 if (!columnNameIndex.TryGetValue(lineGraphConfig.XAxis.FromColumnName, out elapsedDeltaColumnIdx))
@@ -353,7 +376,7 @@ namespace ProcessLogFile
                         chartSeries.ChartType = ChartType.Line;
                         break;
                 }
-                
+
                 chartSeries.Name = seriesName;
             }
 
@@ -784,6 +807,131 @@ namespace ProcessLogFile
             yAxisTitle.Text = barGraphConfig.YAxis.AxisTitle;
         }
 
+        private static void BuildNewSheet(IWorksheet dataWorksheet, NewSheetBE newSheetCfg, Dictionary<string, int> columnNameIndex)
+        {
+            // find sheet we are supposed to insert this one after
+            IWorksheet afterWorkSheet = !(string.IsNullOrEmpty(newSheetCfg.InsertAfterSheetName)) ?
+                                            dataWorksheet.Workbook.Worksheets[newSheetCfg.InsertAfterSheetName]
+                                            : dataWorksheet;
+
+            // add a new empty worksheet
+            IWorksheet newWorkSheet = dataWorksheet.Workbook.Worksheets.AddAfter(afterWorkSheet);
+            newWorkSheet.Name = newSheetCfg.NewSheetName;
+
+            // copy rows
+            int maxRows = dataWorksheet.UsedRange.RowCount;
+
+            int targetColumnIndex = 0;
+            // copy columm headers
+            foreach (string columnName in newSheetCfg.FromColumnNames)
+            {
+                // set column header
+                newWorkSheet.Cells[0, targetColumnIndex].Value = columnName;
+                targetColumnIndex++;
+            }
+
+            // loop thru all the rows on the source worksheet and copy the data
+            int sourceColumnIndex = 0;
+            for (int rowIndex = 1; rowIndex < maxRows; rowIndex++)
+            {
+                targetColumnIndex = 0;
+                foreach (string columnName in newSheetCfg.FromColumnNames)
+                {
+                    // find the source column index
+                    columnNameIndex.TryGetValue(columnName, out sourceColumnIndex);
+
+                    // copy the data
+                    newWorkSheet.Cells[rowIndex, targetColumnIndex].Value = dataWorksheet.Cells[rowIndex, sourceColumnIndex].Value;
+                    targetColumnIndex++;
+                }
+            }
+
+            // resize column widths to fit header text
+            newWorkSheet.UsedRange.Columns.AutoFit();
+
+            // freeze 1st row (to make scrolling more user friendly)
+            newWorkSheet.WindowInfo.ScrollColumn = 0;
+            newWorkSheet.WindowInfo.SplitColumns = 1;
+            newWorkSheet.WindowInfo.ScrollRow = 0;
+            newWorkSheet.WindowInfo.SplitRows = 1;
+            newWorkSheet.WindowInfo.FreezePanes = true;
+        }
+
+        private static void BuildHistogram(IWorksheet dataWorksheet, HistogramBE histogramConfig, Dictionary<string, int> columnNameXref, string pathNameColumnName)
+        {
+            // find sheet we are supposed to insert this one after
+            IWorksheet afterWorkSheet = !(string.IsNullOrEmpty(histogramConfig.InsertAfterSheetName)) ?
+                                            dataWorksheet.Workbook.Worksheets[histogramConfig.InsertAfterSheetName]
+                                            : dataWorksheet;
+
+            // add a new empty worksheet
+            IWorksheet chartSheet = dataWorksheet.Workbook.Worksheets.AddAfter(afterWorkSheet);
+            chartSheet.Name = histogramConfig.NewSheetName;
+
+            // working fields
+            int maxRows = dataWorksheet.UsedRange.RowCount;
+            int sourceColumnIndex = -1;
+            columnNameXref.TryGetValue(histogramConfig.DataColumnName, out sourceColumnIndex);
+            List<decimal> dataValues = new List<decimal>();
+
+            // loop thru all the rows on the source worksheet and build a collection
+            for (int rowIndex = 1; rowIndex < maxRows; rowIndex++)
+            {
+                dataValues.Add(Decimal.Parse(dataWorksheet.Cells[rowIndex, sourceColumnIndex].Text));
+            }
+
+            // build the bin data
+            var groupings = dataValues.GroupBy(item => histogramConfig.Bins.First(bin => bin >= item)).OrderBy(k => k.Key);
+
+            // write out the bin data table column headers
+            chartSheet.Cells[0, 0].Value = @"Bin (secs)";
+            chartSheet.Cells[0, 1].Value = @"Count";
+            chartSheet.Cells[0, 2].Value = @"%";
+
+            // write out the bin data table data
+            int rowCtr = 1;
+            foreach (var kvp in groupings)
+            {
+                chartSheet.Cells[rowCtr, 0].Value = (kvp.Key != 1000) ? kvp.Key.ToString() : @"Overflow";
+                chartSheet.Cells[rowCtr, 1].Value = kvp.Count();
+                chartSheet.Cells[rowCtr, 2].Value = kvp.Count() / (maxRows - 1.0M);   // force decimal divison
+                chartSheet.Cells[rowCtr, 2].NumberFormat = @"0.0%";
+                rowCtr++;
+            }
+
+            // build the bar chart
+            SpreadsheetGear.Shapes.IShape chartShape = chartSheet.Shapes.AddChart(200, 1, 500, 500);
+            SpreadsheetGear.Charts.IChart chart = chartShape.Chart;
+
+            // working variables  "[20190720_114539_375_Auton.tsv]Scan Times Histrogram!$B$2:$B$21"
+            IRange xAxisColumn = chartSheet.Cells[1, 0, rowCtr - 1, 0];
+            IRange yAxisColumn = chartSheet.Cells[1, 1, rowCtr - 1, 1]; ;
+
+            ISeries chartSeries = chart.SeriesCollection.Add();
+            chartSeries.XValues = xAxisColumn.ToString().Split("!")[1];
+            chartSeries.Values = yAxisColumn.ToString().Split("!")[1];
+            chartSeries.ChartType = ChartType.ColumnClustered;
+
+            // format the chart title
+            chart.HasTitle = true;
+            StringBuilder chartTitle = new StringBuilder();
+            string pathName = GetCellValue<string>(dataWorksheet, pathNameColumnName, 1, columnNameXref);
+            chartTitle.AppendLine($"{histogramConfig.Name} | Path: [{pathName}]");
+ 
+            chart.ChartTitle.Text = chartTitle.ToString();
+            chart.ChartTitle.Font.Size = 12;
+
+            // format the chart legend
+            chart.Legend.Position = SpreadsheetGear.Charts.LegendPosition.Bottom;
+            chart.Legend.Font.Bold = true;
+
+            // format X & Y Axes
+            IAxis xAxis = chart.Axes[AxisType.Category];
+            xAxis.HasTitle = true;
+            IAxisTitle xAxisTitle = xAxis.AxisTitle;
+            xAxisTitle.Text = histogramConfig.XAxisTitle;
+        }
+
         /// <summary>
         /// In some scenarios (Telop PID Testing) we may enable in %VBUS mode and some time later transition to VELOCITY mode.
         /// The PID constants column may not be populated or valid until we gp into Velocity mode, so...
@@ -803,7 +951,7 @@ namespace ProcessLogFile
             {
                 controlMode = dataWorksheet.Cells[rowIndex, controlModeColumnIdx].Text;
 
-                switch(controlMode.ToLower())
+                switch (controlMode.ToLower())
                 {
                     case "velocity":
                         return dataWorksheet.Cells[rowIndex, pidGainsColumnIdx].Text;
@@ -812,7 +960,7 @@ namespace ProcessLogFile
                         return @"N/A Open Loop";
                 }
             }
-          
+
             return string.Empty; ;
         }
 
@@ -877,55 +1025,19 @@ namespace ProcessLogFile
         }
 
 
-        private static void BuildNewSheet(IWorksheet dataWorksheet, NewSheetBE newSheetCfg, Dictionary<string, int> columnNameIndex)
+        private static T GetCellValue<T>(IWorksheet dataWorksheet, string columnName, int rowIndex, Dictionary<string, int> columnNameIndex)
         {
-            // find sheet we are supposed to insert this one after
-            IWorksheet afterWorkSheet = !(string.IsNullOrEmpty(newSheetCfg.InsertAfterSheetName)) ?
-                                            dataWorksheet.Workbook.Worksheets[newSheetCfg.InsertAfterSheetName]
-                                            : dataWorksheet;
-
-            // add a new empty worksheet
-            IWorksheet newWorkSheet = dataWorksheet.Workbook.Worksheets.AddAfter(afterWorkSheet);
-            newWorkSheet.Name = newSheetCfg.NewSheetName;
-
-            // copy rows
-            int maxRows = dataWorksheet.UsedRange.RowCount;
-
-            int targetColumnIndex = 0;
-            // copy columm headers
-            foreach (string columnName in newSheetCfg.FromColumnNames)
-            {
-                // set column header
-                newWorkSheet.Cells[0, targetColumnIndex].Value = columnName;
-                targetColumnIndex++;
-            }
-
-            // loop thru all the rows on the source worksheet and copy the data
+            // get source column
             int sourceColumnIndex = 0;
-            for (int rowIndex = 1; rowIndex < maxRows; rowIndex++)
+            if (!columnNameIndex.TryGetValue(columnName, out sourceColumnIndex))
             {
-                targetColumnIndex = 0;
-                foreach (string columnName in newSheetCfg.FromColumnNames)
-                {
-                    // find the source column index
-                    columnNameIndex.TryGetValue(columnName, out sourceColumnIndex);
-
-                    // copy the data
-                    newWorkSheet.Cells[rowIndex, targetColumnIndex].Value = dataWorksheet.Cells[rowIndex, sourceColumnIndex].Value;
-                    targetColumnIndex++;
-                }
+                throw new ApplicationException($"Cannot find column name: [{columnName}] on worksheet: [{dataWorksheet.Name}]");
             }
 
-            // resize column widths to fit header text
-            newWorkSheet.UsedRange.Columns.AutoFit();
+            // get source column value
+            var cellValue = dataWorksheet.Cells[rowIndex, sourceColumnIndex].Value;
 
-            // freeze 1st row (to make scrolling more user friendly)
-            newWorkSheet.WindowInfo.ScrollColumn = 0;
-            newWorkSheet.WindowInfo.SplitColumns = 0;
-            newWorkSheet.WindowInfo.ScrollRow = 0;
-            newWorkSheet.WindowInfo.SplitRows = 1;
-            newWorkSheet.WindowInfo.FreezePanes = true;
+            return (T)Convert.ChangeType(cellValue, typeof(T));
         }
-
     }
 }

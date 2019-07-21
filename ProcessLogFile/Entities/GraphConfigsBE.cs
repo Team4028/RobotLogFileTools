@@ -62,6 +62,9 @@ public class GraphSetBE
 
     [JsonProperty(PropertyName = "newSheets")]
     public List<NewSheetBE> NewSheets { get; set; }
+
+    [JsonProperty(PropertyName = "histograms")]
+    public List<HistogramBE> Histograms { get; set; }
 }
 
 public class AngleConversionBE
@@ -227,3 +230,27 @@ public class NewSheetBE
     [JsonProperty(PropertyName = "fromColumnNames")]
     public List<string> FromColumnNames { get; set; }
 }
+
+#region ==== Histograms ====
+
+public class HistogramBE
+{
+    [JsonProperty(PropertyName = "name")]
+    public string Name { get; set; }
+
+    [JsonProperty(PropertyName = "newSheetName")]
+    public string NewSheetName { get; set; }
+
+    [JsonProperty(PropertyName = "insertAfterSheetName")]
+    public string InsertAfterSheetName { get; set; }
+
+    [JsonProperty(PropertyName = "dataColumnName")]
+    public string DataColumnName { get; set; }
+
+    [JsonProperty(PropertyName = "xAxisTitle")]
+    public string XAxisTitle { get; set; }
+
+    [JsonProperty(PropertyName = "bins")]
+    public List<int> Bins { get; set; }
+}
+#endregion
